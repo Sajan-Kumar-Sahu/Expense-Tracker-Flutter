@@ -1,0 +1,200 @@
+import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../widgets/welcome_section.dart';
+import '../widgets/summary_cards_section.dart';
+import '../widgets/quick_actions_section.dart';
+import '../widgets/recent_transactions_section.dart';
+import '../widgets/analytics_section.dart';
+import '../../../../data/mock/mock_data.dart';
+
+/// The premium home dashboard with animated financial overview.
+class DashboardPage extends StatelessWidget {
+  const DashboardPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Greeting + notification/avatar row
+                    _HomeAppBar(),
+                    SizedBox(height: 20.h),
+
+                    // Welcome section
+                    const WelcomeSection(),
+                    SizedBox(height: 24.h),
+
+                    // Summary cards
+                    const SummaryCardsSection(),
+                    SizedBox(height: 28.h),
+
+                    // Quick actions
+                    const QuickActionsSection(),
+                    SizedBox(height: 28.h),
+
+                    // Recent transactions
+                    const RecentTransactionsSection(),
+                    SizedBox(height: 28.h),
+
+                    // Analytics preview
+                    const AnalyticsSection(),
+
+                    // Bottom padding for the floating nav bar
+                    SizedBox(height: 110.h),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeAppBar extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final userAsync = ref.watch(userProvider);
+
+    return Row(
+      children: [
+        // Hamburger menu
+        GestureDetector(
+          onTap: () => Scaffold.of(context).openDrawer(),
+          child: Container(
+            width: 40.r,
+            height: 40.r,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Icon(
+              Icons.menu_rounded,
+              color: theme.colorScheme.primary,
+              size: 22.r,
+            ),
+          ),
+        ),
+        const Spacer(),
+
+        // Notification icon
+        _IconButton(
+          icon: Icons.notifications_outlined,
+          badge: true,
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notifications coming soon')),
+          ),
+          theme: theme,
+        ),
+        SizedBox(width: 10.w),
+
+        // Avatar
+        GestureDetector(
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile coming soon')),
+          ),
+          child: userAsync.when(
+            loading: () => CircleAvatar(
+              radius: 18.r,
+              backgroundColor: theme.colorScheme.primary,
+              child: const SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            error: (_, __) => CircleAvatar(
+              radius: 18.r,
+              backgroundColor: theme.colorScheme.primary,
+              child: const Text('?'),
+            ),
+            data: (user) {
+              final initials = user.fullName
+                  .split(' ')
+                  .map((e) => e[0])
+                  .take(2)
+                  .join()
+                  .toUpperCase();
+
+              return CircleAvatar(
+                radius: 18.r,
+                backgroundColor: theme.colorScheme.primary,
+                child: Text(
+                  initials,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _IconButton extends StatelessWidget {
+  final IconData icon;
+  final bool badge;
+  final VoidCallback onTap;
+  final ThemeData theme;
+
+  const _IconButton({
+    required this.icon,
+    required this.badge,
+    required this.onTap,
+    required this.theme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          Container(
+            width: 40.r,
+            height: 40.r,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 22.r),
+          ),
+          if (badge)
+            Positioned(
+              right: 8.r,
+              top: 8.r,
+              child: Container(
+                width: 8.r,
+                height: 8.r,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
