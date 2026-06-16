@@ -2,24 +2,37 @@ import 'package:expense_tracker/features/settings/presentation/providers/user_pr
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/navigation/providers/nav_provider.dart';
+import '../providers/dashboard_provider.dart';
 import '../widgets/welcome_section.dart';
 import '../widgets/summary_cards_section.dart';
 import '../widgets/quick_actions_section.dart';
 import '../widgets/recent_transactions_section.dart';
 import '../widgets/analytics_section.dart';
-import '../../../../data/mock/mock_data.dart';
 
 /// The premium home dashboard with animated financial overview.
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
+  Future<void> _onRefresh(WidgetRef ref) async {
+    await Future.wait([
+      ref.refresh(dashboardProvider.future),
+      ref.refresh(recentTransactionsProvider.future),
+    ]);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
+        child: RefreshIndicator(
+          onRefresh: () => _onRefresh(ref),
+          displacement: 20,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -57,6 +70,7 @@ class DashboardPage extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
@@ -73,7 +87,7 @@ class _HomeAppBar extends ConsumerWidget {
       children: [
         // Hamburger menu
         GestureDetector(
-          onTap: () => Scaffold.of(context).openDrawer(),
+          onTap: () => mainScaffoldKey.currentState?.openDrawer(),
           child: Container(
             width: 40.r,
             height: 40.r,

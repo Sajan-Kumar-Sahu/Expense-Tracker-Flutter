@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../routes/app_router.dart';
 
 class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
@@ -29,7 +31,7 @@ class QuickActionsSection extends StatelessWidget {
               bgColor: const Color(0xFFFEF2F2),
               darkBgColor: const Color(0xFF3B1414),
               delay: 0,
-              onTap: () => _showComingSoon(context, 'Add Expense'),
+              onTap: () => context.push(AppRouter.addTransaction, extra: 2),
             ),
             SizedBox(width: 12.w),
             _QuickActionCard(
@@ -39,7 +41,7 @@ class QuickActionsSection extends StatelessWidget {
               bgColor: const Color(0xFFF0FDF4),
               darkBgColor: const Color(0xFF0D2B1E),
               delay: 80,
-              onTap: () => _showComingSoon(context, 'Add Income'),
+              onTap: () => context.push(AppRouter.addTransaction, extra: 1),
             ),
             SizedBox(width: 12.w),
             _QuickActionCard(
@@ -49,7 +51,7 @@ class QuickActionsSection extends StatelessWidget {
               bgColor: const Color(0xFFEEF2FF),
               darkBgColor: const Color(0xFF1E1B40),
               delay: 160,
-              onTap: () => _showComingSoon(context, 'Transfer Money'),
+              onTap: () => context.push(AppRouter.addTransaction, extra: 3),
             ),
             SizedBox(width: 12.w),
             _QuickActionCard(
@@ -59,17 +61,13 @@ class QuickActionsSection extends StatelessWidget {
               bgColor: const Color(0xFFFFFBEB),
               darkBgColor: const Color(0xFF2D2008),
               delay: 240,
-              onTap: () => _showComingSoon(context, 'Reports'),
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Reports coming soon')),
+              ),
             ),
           ],
         ),
       ],
-    );
-  }
-
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature coming soon')),
     );
   }
 }
@@ -151,8 +149,14 @@ class _QuickActionCardState extends State<_QuickActionCard> {
         ),
       )
           .animate()
-          .fadeIn(delay: Duration(milliseconds: widget.delay + 300), duration: 500.ms)
-          .slideY(begin: 0.3, end: 0, delay: Duration(milliseconds: widget.delay + 300), duration: 500.ms),
+          .fadeIn(
+              delay: Duration(milliseconds: widget.delay + 300),
+              duration: 500.ms)
+          .slideY(
+              begin: 0.3,
+              end: 0,
+              delay: Duration(milliseconds: widget.delay + 300),
+              duration: 500.ms),
     );
   }
 }

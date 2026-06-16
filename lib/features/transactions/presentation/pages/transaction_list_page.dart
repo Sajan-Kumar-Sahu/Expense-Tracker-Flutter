@@ -1,23 +1,28 @@
+import 'package:expense_tracker/features/transactions/presentation/providers/transactions_provider.dart';
+import 'package:expense_tracker/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../../data/mock/mock_data.dart';
 import '../../domain/entities/transaction_entity.dart';
 
 /// Full-featured transactions screen with search, filter, and list.
-class TransactionListPage extends StatefulWidget {
+class TransactionListPage extends ConsumerStatefulWidget {
   const TransactionListPage({super.key});
 
   @override
-  State<TransactionListPage> createState() => _TransactionListPageState();
+  ConsumerState<TransactionListPage> createState() =>
+      _TransactionListPageState();
 }
 
-class _TransactionListPageState extends State<TransactionListPage> {
+class _TransactionListPageState
+    extends ConsumerState<TransactionListPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'All';
-  List<TransactionEntity> _filteredTransactions = MockData.transactions;
+  List<TransactionEntity> _filteredTransactions = [];
 
   final List<String> _filters = ['All', 'Income', 'Expense'];
 
@@ -34,32 +39,42 @@ class _TransactionListPageState extends State<TransactionListPage> {
   }
 
   void _applyFilter() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredTransactions = MockData.transactions.where((t) {
-        final matchesQuery =
-            query.isEmpty || t.description.toLowerCase().contains(query);
-        final matchesFilter = _selectedFilter == 'All' ||
-            (_selectedFilter == 'Income' && t.transactionType == 'income') ||
-            (_selectedFilter == 'Expense' && t.transactionType == 'expense');
-        return matchesQuery && matchesFilter;
-      }).toList();
-    });
+    setState(() {});
   }
 
   Future<void> _onRefresh() async {
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    setState(() {
-      _searchController.clear();
-      _selectedFilter = 'All';
-      _filteredTransactions = MockData.transactions;
-    });
+    _searchController.clear();
+    _selectedFilter = 'All';
+
+    await ref
+        .read(transactionsProvider)
+        .refreshTransactions();
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = ref.watch(transactionsProvider);
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    _filteredTransactions =
+        provider.transactions.where((t) {
+          final query = _searchController.text.toLowerCase();
+
+          final matchesQuery =
+              query.isEmpty ||
+                  t.paidTo.toLowerCase().contains(query);
+
+          final matchesFilter =
+              _selectedFilter == 'All' ||
+                  (_selectedFilter == 'Income' &&
+                      t.transactionType == 1) ||
+                  (_selectedFilter == 'Expense' &&
+                      t.transactionType == 2);
+
+          return matchesQuery && matchesFilter;
+        }).toList();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -219,26 +234,38 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
             // Transaction list
             Expanded(
-              child: RefreshIndicator(
+              child: provider.isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(),
+              )
+                  : RefreshIndicator(
                 onRefresh: _onRefresh,
                 color: theme.colorScheme.primary,
                 child: _filteredTransactions.isEmpty
                     ? _EmptyState(theme: theme)
                     : ListView.builder(
-                        padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 110.h),
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
-                        itemCount: _filteredTransactions.length,
-                        itemBuilder: (context, index) {
-                          return _TransactionCard(
-                            transaction: _filteredTransactions[index],
-                            index: index,
-                          );
-                        },
-                      ),
+                  padding: EdgeInsets.fromLTRB(
+                    20.w,
+                    0,
+                    20.w,
+                    110.h,
+                  ),
+                  physics:
+                  const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  itemCount:
+                  _filteredTransactions.length,
+                  itemBuilder: (context, index) {
+                    return _TransactionCard(
+                      transaction:
+                      _filteredTransactions[index],
+                      index: index,
+                    );
+                  },
+                ),
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -256,9 +283,17 @@ class _TransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isIncome = transaction.transactionType == 'income';
+    final isIncome = transaction.transactionType == 1;
 
-    return Container(
+  return InkWell(
+      borderRadius: BorderRadius.circular(16.r),
+      onTap: () {
+        context.push(
+          AppRouter.transactionDetails,
+          extra: transaction.id,
+        );
+      },
+      child: Container(
       margin: EdgeInsets.only(bottom: 10.h),
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
@@ -302,7 +337,7 @@ class _TransactionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.description,
+                  transaction.paidTo,
                   style: TextStyle(
                       fontSize: 14.sp, fontWeight: FontWeight.w600),
                   maxLines: 1,
@@ -326,7 +361,7 @@ class _TransactionCard extends StatelessWidget {
                           fontSize: 10.sp,
                           fontWeight: FontWeight.w600,
                           color: isIncome
-                              ? const Color(0xFF10B981)
+                              ? const Color(0xFF10B97F)
                               : const Color(0xFFEF4444),
                         ),
                       ),
@@ -358,14 +393,15 @@ class _TransactionCard extends StatelessWidget {
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(delay: Duration(milliseconds: index * 60 + 300), duration: 400.ms)
-        .slideX(
-            begin: 0.08,
-            end: 0,
-            delay: Duration(milliseconds: index * 60 + 300),
-            duration: 400.ms);
+    ),
+  )
+      .animate()
+      .fadeIn(delay: Duration(milliseconds: index * 60 + 300), duration: 400.ms)
+      .slideY(
+      begin: 0.08,
+      end: 0,
+      delay: Duration(milliseconds: index * 60 + 300),
+      duration: 400.ms);
   }
 
   IconData _categoryIcon(String categoryId) {

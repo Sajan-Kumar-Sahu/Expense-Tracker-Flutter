@@ -1,19 +1,19 @@
-import 'package:equatable/equatable.dart';
-
-/// Immutable domain model representing a transaction category (e.g. Food, Utilities).
-class CategoryEntity extends Equatable {
+class CategoryEntity {
   final String id;
+  final String userId;
   final String name;
-  final String icon;
-  final String color;
+  final String? description;
+  final int categoryType;
+  final bool isActive;
+  final DateTime createdAt;
 
   const CategoryEntity({
     required this.id,
+    required this.userId,
     required this.name,
-    required this.icon,
-    required this.color,
+    this.description,
+    required this.categoryType,
+    required this.isActive,
+    required this.createdAt,
   });
-
-  @override
-  List<Object?> get props => [id, name, icon, color];
 }

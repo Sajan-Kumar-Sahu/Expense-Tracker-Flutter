@@ -1,12 +1,15 @@
+import 'package:expense_tracker/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'app_drawer.dart';
 import 'providers/nav_provider.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/transactions/presentation/pages/transaction_list_page.dart';
 import '../../features/accounts/presentation/pages/account_list_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/categories/presentation/pages/category_list_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Nav destination model
@@ -65,6 +68,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     TransactionListPage(),
     AccountListPage(),
     SettingsPage(),
+    CategoryListPage(),
   ];
 
   @override
@@ -91,6 +95,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     final theme = Theme.of(context);
 
     return Scaffold(
+      key: mainScaffoldKey,
       drawer: const AppDrawer(),
       body: Stack(
         children: [
@@ -148,14 +153,16 @@ class _BottomSection extends StatelessWidget {
         ),
 
         // ── FAB centered, overlapping the top edge of the bar ────────────
-        Positioned(
-          top: -28.r,
-          child: _GradientFab(
-            scale: fabScale,
-            controller: fabController,
-            theme: theme,
+        // Only visible on the Home/Dashboard tab (index 0)
+        if (currentIndex == 0)
+          Positioned(
+            top: -28.r,
+            child: _GradientFab(
+              scale: fabScale,
+              controller: fabController,
+              theme: theme,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -368,11 +375,8 @@ class _GradientFabState extends State<_GradientFab>
       onTapDown: (_) => widget.controller.forward(),
       onTapUp: (_) {
         widget.controller.reverse();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Add Transaction — coming soon'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        context.push(
+          AppRouter.addTransaction,
         );
       },
       onTapCancel: () => widget.controller.reverse(),

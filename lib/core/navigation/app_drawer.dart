@@ -1,3 +1,4 @@
+import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -58,10 +59,9 @@ class AppDrawer extends ConsumerWidget {
                   _DrawerItem(
                     icon: Icons.category_rounded,
                     label: 'Categories',
-                    index: -1,
+                    index: 4,
                     ref: ref,
                     context: context,
-                    comingSoon: true,
                   ),
                   _DrawerItem(
                     icon: Icons.savings_rounded,
@@ -123,61 +123,133 @@ class AppDrawer extends ConsumerWidget {
   }
 }
 
-class _DrawerHeader extends StatelessWidget {
+class _DrawerHeader extends ConsumerWidget {
   final bool isDark;
   final ThemeData theme;
 
-  const _DrawerHeader({required this.isDark, required this.theme});
+  const _DrawerHeader({
+    required this.isDark,
+    required this.theme,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withBlue(230),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userProvider);
+
+    return userAsync.when(
+      loading: () => Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(20.r),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withBlue(230),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
+        child: SizedBox(height: 100.h),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 30.r,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            child: Text(
-              MockData.userInitials,
+
+      error: (_, __) => Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(20.r),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withBlue(230),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 30.r,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              child: Icon(
+                Icons.person,
+                color: Colors.white,
+                size: 28.r,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'User',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20.sp,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          SizedBox(height: 12.h),
-          Text(
-            MockData.userName,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            MockData.userEmail,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.75),
-              fontSize: 13.sp,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
+
+      data: (user) {
+        final initials = user.fullName
+            .trim()
+            .split(' ')
+            .where((e) => e.isNotEmpty)
+            .map((e) => e[0])
+            .take(2)
+            .join()
+            .toUpperCase();
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(20.r),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withBlue(230),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 30.r,
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                child: Text(
+                  initials,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                user.fullName,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                user.email,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 13.sp,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

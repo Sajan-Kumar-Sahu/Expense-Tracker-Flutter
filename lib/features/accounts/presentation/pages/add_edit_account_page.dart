@@ -58,7 +58,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
         title: Text(isEditing ? 'Edit Account' : 'Add Account'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => context.go(AppRouter.accounts),
+          onPressed: () => context.go(AppRouter.home),
         ),
       ),
       body: SingleChildScrollView(
@@ -161,7 +161,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
           ),
         );
 
-        router.go(AppRouter.accounts);
+        router.go(AppRouter.home);
       } else {
         scaffoldMessenger.showSnackBar(
           const SnackBar(
@@ -193,7 +193,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
         ),
       );
 
-      router.go(AppRouter.accounts);
+      router.go(AppRouter.home);
     } else {
       scaffoldMessenger.showSnackBar(
         const SnackBar(

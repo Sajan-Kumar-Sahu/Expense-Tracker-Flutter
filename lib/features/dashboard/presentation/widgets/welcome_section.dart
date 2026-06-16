@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import '../../../../data/mock/mock_data.dart';
 
 /// Greeting + date row at the top of the dashboard.
 class WelcomeSection extends ConsumerWidget {
