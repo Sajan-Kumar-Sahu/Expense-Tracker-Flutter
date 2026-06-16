@@ -1,11 +1,13 @@
+import 'package:expense_tracker/features/auth/presentation/providers/auth_provider.dart';
 import 'package:expense_tracker/features/settings/presentation/pages/edit_profile_page.dart';
 import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/providers/theme_provider.dart';
-import '../../../../data/mock/mock_data.dart';
+import '../../../../routes/app_router.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -57,8 +59,8 @@ class SettingsPage extends ConsumerWidget {
                         value: isDark,
                         activeThumbColor: theme.colorScheme.primary,
                         activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.4),
-                        onChanged: (val) =>
-                            ref.read(themeProvider.notifier).state = val,
+                        onChanged: (_) =>
+                            ref.read(themeProvider.notifier).toggle(),
                       ),
                     ),
                     _SettingsTile(
@@ -134,7 +136,7 @@ class SettingsPage extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () => _showComingSoon(context, 'Logout'),
+                        onPressed: () => _confirmLogout(context, ref),
                         icon: const Icon(Icons.logout_rounded),
                         label: const Text('Logout'),
                         style: OutlinedButton.styleFrom(
@@ -165,6 +167,36 @@ class SettingsPage extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('$feature coming soon')),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await ref.read(authProvider.notifier).logout();
+      if (context.mounted) context.go(AppRouter.getStarted);
+    }
   }
 }
 

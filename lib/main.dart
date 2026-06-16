@@ -19,7 +19,7 @@ void main() async {
   // Initialize Environment Config (Defaults to Development)
   AppConfig.initialize(
     environment: Environment.dev,
-    baseUrl: 'http://192.168.1.9:21882', // Example local .NET backend URL
+    baseUrl: 'http://192.168.1.9:21882',
   );
 
   // Set up service locator

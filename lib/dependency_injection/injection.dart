@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import '../core/network/dio_provider.dart';
 import '../core/network/api_client.dart';
+import '../core/storage/auth_storage.dart';
 
 // Feature Accounts
 import '../features/accounts/data/datasources/account_remote_datasource.dart';
@@ -29,7 +30,8 @@ final locator = GetIt.instance;
 /// Registers all app-wide dependencies manually.
 void setupLocator() {
   // Core
-  locator.registerLazySingleton<Dio>(() => DioProvider.createDio());
+  locator.registerLazySingleton<AuthStorage>(() => AuthStorage());
+  locator.registerLazySingleton<Dio>(() => DioProvider.createDio(locator<AuthStorage>()));
   locator.registerLazySingleton<ApiClient>(() => ApiClient(locator<Dio>()));
 
   // Feature Accounts

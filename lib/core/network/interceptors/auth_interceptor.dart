@@ -1,15 +1,23 @@
 import 'package:dio/dio.dart';
+import '../../storage/auth_storage.dart';
 import '../api_constants.dart';
 
-/// Interceptor to automatically attach JWT authorization headers to outgoing requests.
+/// Attaches the JWT access token to every outgoing request.
 class AuthInterceptor extends Interceptor {
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    // Future support: Retrieve actual token from Secure Storage/Preferences
-    const String? token = null; 
+  final AuthStorage _storage;
 
-    if (token != null) {
-      options.headers[ApiConstants.authorization] = '${ApiConstants.bearer} $token';
+  AuthInterceptor(this._storage);
+
+  @override
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final token = await _storage.getAccessToken();
+
+    if (token != null && token.isNotEmpty) {
+      options.headers[ApiConstants.authorization] =
+          '${ApiConstants.bearer} $token';
     }
 
     options.headers[ApiConstants.accept] = ApiConstants.applicationJson;

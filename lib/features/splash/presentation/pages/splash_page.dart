@@ -1,24 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-/// Animated splash screen shown on app launch.
-class SplashPage extends StatefulWidget {
+import '../../../../routes/app_router.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+
+/// Animated splash screen — checks auth status and routes accordingly.
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
-    // Navigate to home after 3 seconds
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      if (mounted) context.go('/home');
-    });
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    // Wait for animations to play, then check auth
+    await Future.delayed(const Duration(milliseconds: 2800));
+    if (!mounted) return;
+
+    await ref.read(authProvider.notifier).checkAuthStatus();
+    if (!mounted) return;
+
+    final authState = ref.read(authProvider);
+    if (authState is AuthAuthenticated) {
+      context.go(AppRouter.home);
+    } else {
+      context.go(AppRouter.getStarted);
+    }
   }
 
   @override
@@ -81,7 +98,6 @@ class _SplashPageState extends State<SplashPage> {
 
               SizedBox(height: 28.h),
 
-              // App name
               Text(
                 'ExpenseTracker',
                 style: TextStyle(
@@ -105,13 +121,10 @@ class _SplashPageState extends State<SplashPage> {
                   fontWeight: FontWeight.w400,
                   letterSpacing: 0.3,
                 ),
-              )
-                  .animate()
-                  .fadeIn(delay: 600.ms, duration: 600.ms),
+              ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
 
               const Spacer(flex: 2),
 
-              // Loading indicator
               SizedBox(
                 width: 36.r,
                 height: 36.r,
@@ -121,9 +134,7 @@ class _SplashPageState extends State<SplashPage> {
                     Colors.white.withValues(alpha: 0.6),
                   ),
                 ),
-              )
-                  .animate()
-                  .fadeIn(delay: 1000.ms, duration: 400.ms),
+              ).animate().fadeIn(delay: 1000.ms, duration: 400.ms),
 
               SizedBox(height: 12.h),
 
@@ -133,9 +144,7 @@ class _SplashPageState extends State<SplashPage> {
                   color: Colors.white.withValues(alpha: 0.5),
                   fontSize: 12.sp,
                 ),
-              )
-                  .animate()
-                  .fadeIn(delay: 1200.ms, duration: 400.ms),
+              ).animate().fadeIn(delay: 1200.ms, duration: 400.ms),
 
               SizedBox(height: 48.h),
             ],

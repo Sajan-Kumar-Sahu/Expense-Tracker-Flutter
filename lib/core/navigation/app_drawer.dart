@@ -1,12 +1,46 @@
+import 'package:expense_tracker/features/auth/presentation/providers/auth_provider.dart';
 import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'providers/nav_provider.dart';
-import '../../data/mock/mock_data.dart';
+import '../../routes/app_router.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    // Show dialog BEFORE closing the drawer so context remains valid
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      Navigator.pop(context); // close the drawer
+      await ref.read(authProvider.notifier).logout();
+      if (context.mounted) context.go(AppRouter.getStarted);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -97,12 +131,7 @@ class AppDrawer extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Logout coming soon')),
-                    );
-                  },
+                  onPressed: () => _confirmLogout(context, ref),
                   icon: Icon(Icons.logout_rounded, size: 18.r),
                   label: const Text('Logout'),
                   style: OutlinedButton.styleFrom(
