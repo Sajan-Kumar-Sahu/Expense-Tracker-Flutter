@@ -1,3 +1,5 @@
+import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/categories/data/models/update_category_request.dart';
 import 'package:expense_tracker/features/categories/domain/entities/category_entity.dart';
 import 'package:expense_tracker/routes/app_router.dart';
@@ -189,11 +191,20 @@ class _AddEditCategoryPageState
       return;
     }
 
+    final userId = await locator<AuthStorage>().getUserId();
+    if (userId == null) {
+      setState(() => _isLoading = false);
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Session expired. Please log in again.')),
+      );
+      return;
+    }
+
     final success = await ref
         .read(categoriesProvider)
         .createCategory(
       CategoryRequest(
-        userId: '94623bcb-fed5-47a0-a684-720dd84fcbe9',
+        userId: userId,
         name: name,
         description: description,
         categoryType: _selectedType,

@@ -1,3 +1,5 @@
+import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,10 +47,18 @@ class _EditProfilePageState
       final service =
       ref.read(userServiceProvider);
 
+      final userId = await locator<AuthStorage>().getUserId();
+      if (userId == null) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session expired. Please log in again.')),
+        );
+        return;
+      }
+
       final result =
       await service.updateUser(
-        id:
-        '94623bcb-fed5-47a0-a684-720dd84fcbe9',
+        id: userId,
         fullName:
         _nameController.text.trim(),
         email:

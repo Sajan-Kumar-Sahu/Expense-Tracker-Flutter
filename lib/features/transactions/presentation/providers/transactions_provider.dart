@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/storage/auth_storage.dart';
 import 'package:expense_tracker/features/transactions/data/models/UpdateTransactionRequest.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_request.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +11,9 @@ import '../../domain/repositories/transaction_repository.dart';
 
 class TransactionsProvider extends ChangeNotifier {
   final TransactionRepository repository;
+  final AuthStorage _authStorage;
 
-  TransactionsProvider(this.repository) {
+  TransactionsProvider(this.repository, this._authStorage) {
     loadTransactions();
   }
 
@@ -21,17 +23,17 @@ class TransactionsProvider extends ChangeNotifier {
 
   TransactionEntity? selectedTransaction;
 
-  static const _hardcodedUserId =
-      '94623bcb-fed5-47a0-a684-720dd84fcbe9';
+  Future<String?> get _userId => _authStorage.getUserId();
 
   Future<void> loadTransactions() async {
     try {
       isLoading = true;
       notifyListeners();
 
-      transactions = await repository.getTransactions(
-        _hardcodedUserId,
-      );
+      final userId = await _userId;
+      if (userId == null) return;
+
+      transactions = await repository.getTransactions(userId);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -150,5 +152,6 @@ final transactionsProvider =
 ChangeNotifierProvider<TransactionsProvider>((ref) {
   return TransactionsProvider(
     locator<TransactionRepository>(),
+    locator<AuthStorage>(),
   );
 });

@@ -1,3 +1,5 @@
+import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/accounts/presentation/providers/accounts_provider.dart';
 import 'package:expense_tracker/features/categories/presentation/providers/categories_provider.dart';
 import 'package:expense_tracker/features/transactions/data/models/UpdateTransactionRequest.dart';
@@ -394,12 +396,19 @@ class _AddEditTransactionPageState
         ),
       );
     } else {
+      final userId = await locator<AuthStorage>().getUserId();
+      if (userId == null) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session expired. Please log in again.')),
+        );
+        return;
+      }
       success = await ref
           .read(transactionsProvider)
           .createTransaction(
         TransactionRequest(
-          userId:
-          '94623bcb-fed5-47a0-a684-720dd84fcbe9',
+          userId: userId,
 
           accountId: _selectedAccountId!,
 

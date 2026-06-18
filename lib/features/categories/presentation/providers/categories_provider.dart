@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/storage/auth_storage.dart';
 import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/categories/data/models/update_category_request.dart';
 import 'package:flutter/material.dart';
@@ -8,24 +9,26 @@ import '../../domain/repositories/category_repository.dart';
 
 class CategoriesProvider extends ChangeNotifier {
   final CategoryRepository repository;
+  final AuthStorage _authStorage;
 
-  CategoriesProvider(this.repository) {
+  CategoriesProvider(this.repository, this._authStorage) {
     loadCategories();
   }
 
   bool isLoading = false;
   List<CategoryEntity> categories = [];
 
-  static const _hardcodedUserId =
-      '94623bcb-fed5-47a0-a684-720dd84fcbe9';
+  Future<String?> get _userId => _authStorage.getUserId();
 
   Future<void> loadCategories() async {
     try {
       isLoading = true;
       notifyListeners();
 
-      categories =
-      await repository.getCategories(_hardcodedUserId);
+      final userId = await _userId;
+      if (userId == null) return;
+
+      categories = await repository.getCategories(userId);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -103,5 +106,6 @@ final categoriesProvider =
 ChangeNotifierProvider<CategoriesProvider>((ref) {
   return CategoriesProvider(
     locator<CategoryRepository>(),
+    locator<AuthStorage>(),
   );
 });

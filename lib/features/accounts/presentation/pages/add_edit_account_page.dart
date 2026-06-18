@@ -1,3 +1,5 @@
+import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/accounts/data/models/account_request.dart';
 import 'package:expense_tracker/features/accounts/data/models/update_account_request.dart';
 import 'package:flutter/material.dart';
@@ -173,10 +175,19 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       return;
     }
 
+    final userId = await locator<AuthStorage>().getUserId();
+    if (userId == null) {
+      setState(() => _isLoading = false);
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Session expired. Please log in again.')),
+      );
+      return;
+    }
+
     final success =
     await ref.read(accountsProvider).createAccount(
       AccountRequest(
-        userId: '94623bcb-fed5-47a0-a684-720dd84fcbe9',
+        userId: userId,
         name: name,
         description: '',
         openingBalance: balance,
