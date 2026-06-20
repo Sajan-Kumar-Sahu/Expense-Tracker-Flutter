@@ -1,4 +1,5 @@
 import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/accounts/data/models/account_request.dart';
 import 'package:expense_tracker/features/accounts/data/models/update_account_request.dart';
@@ -157,18 +158,14 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
       setState(() => _isLoading = false);
 
       if (success) {
+        await refreshAll(ref);
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Account updated'),
-          ),
+          const SnackBar(content: Text('Account updated')),
         );
-
         router.go(AppRouter.home);
       } else {
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Failed to update account'),
-          ),
+          const SnackBar(content: Text('Failed to update account')),
         );
       }
 
@@ -198,18 +195,14 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
     setState(() => _isLoading = false);
 
     if (success) {
+      await refreshAll(ref);
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Account created'),
-        ),
+        const SnackBar(content: Text('Account created')),
       );
-
       router.go(AppRouter.home);
     } else {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Failed to create account'),
-        ),
+        const SnackBar(content: Text('Failed to create account')),
       );
     }
   }

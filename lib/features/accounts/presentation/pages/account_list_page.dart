@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -347,6 +348,7 @@ class _AccountCard extends StatelessWidget {
               onSelected: (value) async {
                 if (value == 'edit') {
                   await context.push(AppRouter.editAccount, extra: account);
+                  await refreshAll(ref);
                 } else if (value == 'delete') {
                   final confirm = await showDialog<bool>(
                     context: context,
@@ -371,16 +373,13 @@ class _AccountCard extends StatelessWidget {
                   );
                   if (confirm == true && context.mounted) {
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    final success =  await ref
+                    final success = await ref
                         .read(accountsProvider)
                         .deleteAccount(account.id);
                     if (success) {
+                      await refreshAll(ref);
                       scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Account deleted successfully',
-                          ),
-                        ),
+                        const SnackBar(content: Text('Account deleted successfully')),
                       );
                     }
                   }

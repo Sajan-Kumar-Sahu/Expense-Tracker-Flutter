@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:expense_tracker/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'app_drawer.dart';
 import 'providers/nav_provider.dart';
+import '../../core/auth/auth_event_bus.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/transactions/presentation/pages/transaction_list_page.dart';
 import '../../features/accounts/presentation/pages/account_list_page.dart';
@@ -62,6 +66,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     with SingleTickerProviderStateMixin {
   late final AnimationController _fabController;
   late final Animation<double> _fabScale;
+  StreamSubscription<void>? _sessionSub;
 
   static const List<Widget> _pages = [
     DashboardPage(),
@@ -81,10 +86,19 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     _fabScale = Tween<double>(begin: 1.0, end: 0.88).animate(
       CurvedAnimation(parent: _fabController, curve: Curves.easeInOut),
     );
+
+    // When the refresh-token call fails the interceptor emits a session-expired
+    // event. Catch it here and send the user back to the login screen.
+    _sessionSub = sessionExpiredStream.listen((_) {
+      if (!mounted) return;
+      ref.read(authProvider.notifier).logout();
+      context.go(AppRouter.login);
+    });
   }
 
   @override
   void dispose() {
+    _sessionSub?.cancel();
     _fabController.dispose();
     super.dispose();
   }

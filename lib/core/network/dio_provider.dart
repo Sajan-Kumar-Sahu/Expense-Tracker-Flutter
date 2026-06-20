@@ -20,7 +20,10 @@ class DioProvider {
 
     dio.interceptors.addAll([
       AuthInterceptor(storage),
-      TokenRefreshInterceptor(storage, dio),
+      // Pass BaseOptions so the interceptor can create its own clean Dio
+      // instances that bypass AuthInterceptor (avoiding expired-token pollution
+      // on the refresh request itself).
+      TokenRefreshInterceptor(storage, options),
       LoggingInterceptor(),
     ]);
 

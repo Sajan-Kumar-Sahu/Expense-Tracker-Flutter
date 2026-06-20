@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:expense_tracker/features/transactions/presentation/providers/transactions_provider.dart';
 import 'package:expense_tracker/routes/app_router.dart';
 import 'package:flutter/material.dart';
@@ -287,6 +288,10 @@ class _TransactionDetailsPageState
 
     final success =
     await ref.read(transactionsProvider).deleteTransaction(id);
+
+    if (!mounted) return;
+
+    if (success) await refreshAll(ref);
 
     if (!mounted) return;
 

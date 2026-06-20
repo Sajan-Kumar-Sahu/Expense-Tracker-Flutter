@@ -7,6 +7,7 @@ import 'core/config/environment.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/providers/theme_provider.dart';
 import 'dependency_injection/injection.dart';
+import 'core/utils/app_refresh.dart';
 import 'routes/app_router.dart';
 
 void main() async {
@@ -32,11 +33,36 @@ void main() async {
   );
 }
 
-class ExpenseTrackerApp extends ConsumerWidget {
+class ExpenseTrackerApp extends ConsumerStatefulWidget {
   const ExpenseTrackerApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ExpenseTrackerApp> createState() => _ExpenseTrackerAppState();
+}
+
+class _ExpenseTrackerAppState extends ConsumerState<ExpenseTrackerApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      refreshAll(ref);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeProvider);
 
     return ScreenUtilInit(
@@ -45,7 +71,7 @@ class ExpenseTrackerApp extends ConsumerWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp.router(
-          title: 'Expense Tracker',
+          title: 'ArthiqHQ',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

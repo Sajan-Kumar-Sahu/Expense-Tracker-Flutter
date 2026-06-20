@@ -1,4 +1,5 @@
 import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/accounts/presentation/providers/accounts_provider.dart';
 import 'package:expense_tracker/features/categories/presentation/providers/categories_provider.dart';
@@ -448,17 +449,13 @@ class _AddEditTransactionPageState
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      await refreshAll(ref);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            isEditing
-                ? 'Transaction updated'
-                : 'Transaction created',
-          ),
+          content: Text(isEditing ? 'Transaction updated' : 'Transaction created'),
         ),
       );
-
       context.go(AppRouter.home);
     }
   }

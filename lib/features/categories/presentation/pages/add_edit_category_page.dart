@@ -1,4 +1,5 @@
 import 'package:expense_tracker/core/storage/auth_storage.dart';
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/categories/data/models/update_category_request.dart';
 import 'package:expense_tracker/features/categories/domain/entities/category_entity.dart';
@@ -172,19 +173,14 @@ class _AddEditCategoryPageState
       setState(() => _isLoading = false);
 
       if (success) {
+        await refreshAll(ref);
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('Category updated'),
-          ),
+          const SnackBar(content: Text('Category updated')),
         );
-
         router.go(AppRouter.home);
       } else {
         scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content:
-            Text('Failed to update category'),
-          ),
+          const SnackBar(content: Text('Failed to update category')),
         );
       }
 
@@ -215,18 +211,13 @@ class _AddEditCategoryPageState
 
     if (success) {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Category created'),
-        ),
+        const SnackBar(content: Text('Category created')),
       );
-
+      await refreshAll(ref);
       router.go(AppRouter.home);
     } else {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content:
-          Text('Failed to create category'),
-        ),
+        const SnackBar(content: Text('Failed to create category')),
       );
     }
   }

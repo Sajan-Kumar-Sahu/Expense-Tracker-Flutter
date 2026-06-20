@@ -99,7 +99,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               SizedBox(height: 28.h),
 
               Text(
-                'ExpenseTracker',
+                'ArthiqHQ',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28.sp,

@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -276,10 +277,11 @@ class _CategoryCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12.r)),
             onSelected: (value) async {
               if (value == 'edit') {
-                context.push(
+                await context.push(
                   AppRouter.editCategory,
                   extra: category,
                 );
+                await refreshAll(ref);
                 return;
               }
 
@@ -310,13 +312,12 @@ class _CategoryCard extends StatelessWidget {
                       .deleteCategory(category.id);
 
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Category deleted successfully',
-                        ),
-                      ),
-                    );
+                    await refreshAll(ref);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Category deleted successfully')),
+                      );
+                    }
                   }
                 }
               }
