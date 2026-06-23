@@ -14,10 +14,10 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._dataSource, this._storage);
 
   @override
-  Future<res.Result<AuthEntity>> login(String email, String password) async {
+  Future<res.Result<AuthEntity>> login(String mobileNumber, String password) async {
     try {
       final model = await _dataSource.login(
-        LoginRequest(email: email, password: password),
+        LoginRequest(mobileNumber: mobileNumber, password: password),
       );
       await _storage.saveAuth(
         accessToken: model.accessToken,

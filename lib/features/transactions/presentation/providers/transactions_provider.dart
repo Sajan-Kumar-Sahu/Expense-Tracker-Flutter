@@ -1,4 +1,3 @@
-import 'package:expense_tracker/core/storage/auth_storage.dart';
 import 'package:expense_tracker/features/transactions/data/models/UpdateTransactionRequest.dart';
 import 'package:expense_tracker/features/transactions/data/models/transaction_request.dart';
 import 'package:flutter/material.dart';
@@ -11,51 +10,76 @@ import '../../domain/repositories/transaction_repository.dart';
 
 class TransactionsProvider extends ChangeNotifier {
   final TransactionRepository repository;
-  final AuthStorage _authStorage;
 
-  TransactionsProvider(this.repository, this._authStorage) {
+  TransactionsProvider(this.repository) {
     loadTransactions();
   }
 
+  static const int _pageSize = 20;
+
   bool isLoading = false;
+  bool isLoadingMore = false;
+  bool hasMore = true;
+
+  int _currentPage = 1;
 
   List<TransactionEntity> transactions = [];
 
   TransactionEntity? selectedTransaction;
 
-  Future<String?> get _userId => _authStorage.getUserId();
-
   Future<void> loadTransactions() async {
     try {
       isLoading = true;
+      _currentPage = 1;
+      hasMore = true;
       notifyListeners();
 
-      final userId = await _userId;
-      if (userId == null) return;
+      final paged = await repository.getTransactions(
+        page: 1,
+        pageSize: _pageSize,
+      );
 
-      transactions = await repository.getTransactions(userId);
+      transactions = paged.items;
+      hasMore = paged.hasNextPage;
+      _currentPage = 1;
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> createTransaction(
-      TransactionRequest request,
-      ) async {
+  Future<void> loadMore() async {
+    if (isLoadingMore || !hasMore) return;
+
+    try {
+      isLoadingMore = true;
+      notifyListeners();
+
+      final nextPage = _currentPage + 1;
+
+      final paged = await repository.getTransactions(
+        page: nextPage,
+        pageSize: _pageSize,
+      );
+
+      transactions.addAll(paged.items);
+      hasMore = paged.hasNextPage;
+      _currentPage = nextPage;
+    } catch (_) {
+      // Keep existing transactions on error
+    } finally {
+      isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> createTransaction(TransactionRequest request) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final transaction =
-      await repository.createTransaction(
-        request,
-      );
-
-      transactions.insert(
-        0,
-        transaction,
-      );
+      final transaction = await repository.createTransaction(request);
+      transactions.insert(0, transaction);
 
       return true;
     } catch (_) {
@@ -66,45 +90,31 @@ class TransactionsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> loadTransactionById(
-      String id,
-      ) async {
+  Future<void> loadTransactionById(String id) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      selectedTransaction =
-      await repository
-          .getTransactionById(id);
+      selectedTransaction = await repository.getTransactionById(id);
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> updateTransaction(
-      UpdateTransactionRequest request,
-      ) async {
+  Future<bool> updateTransaction(UpdateTransactionRequest request) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final updated =
-      await repository.updateTransaction(
-        request,
-      );
+      final updated = await repository.updateTransaction(request);
 
-      final index =
-      transactions.indexWhere(
-            (e) => e.id == updated.id,
-      );
-
+      final index = transactions.indexWhere((e) => e.id == updated.id);
       if (index != -1) {
         transactions[index] = updated;
       }
 
-      if (selectedTransaction?.id ==
-          updated.id) {
+      if (selectedTransaction?.id == updated.id) {
         selectedTransaction = updated;
       }
 
@@ -117,18 +127,14 @@ class TransactionsProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> deleteTransaction(
-      String id,
-      ) async {
+  Future<bool> deleteTransaction(String id) async {
     try {
       isLoading = true;
       notifyListeners();
 
       await repository.deleteTransaction(id);
 
-      transactions.removeWhere(
-            (e) => e.id == id,
-      );
+      transactions.removeWhere((e) => e.id == id);
 
       if (selectedTransaction?.id == id) {
         selectedTransaction = null;
@@ -146,12 +152,18 @@ class TransactionsProvider extends ChangeNotifier {
   Future<void> refreshTransactions() async {
     await loadTransactions();
   }
+
+  void reset() {
+    transactions = [];
+    selectedTransaction = null;
+    isLoading = false;
+    isLoadingMore = false;
+    hasMore = true;
+    _currentPage = 1;
+    notifyListeners();
+  }
 }
 
-final transactionsProvider =
-ChangeNotifierProvider<TransactionsProvider>((ref) {
-  return TransactionsProvider(
-    locator<TransactionRepository>(),
-    locator<AuthStorage>(),
-  );
+final transactionsProvider = ChangeNotifierProvider<TransactionsProvider>((ref) {
+  return TransactionsProvider(locator<TransactionRepository>());
 });

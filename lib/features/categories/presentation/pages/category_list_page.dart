@@ -1,4 +1,3 @@
-import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,7 +41,8 @@ class CategoryListPage extends ConsumerWidget {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => ref.read(categoriesProvider).loadCategories(),
+                        onPressed: () =>
+                            ref.read(categoriesProvider).loadCategories(),
                         icon: Icon(Icons.refresh_rounded,
                             color: theme.colorScheme.primary, size: 22.r),
                         tooltip: 'Refresh',
@@ -103,8 +103,6 @@ class CategoryListPage extends ConsumerWidget {
                                       (context, index) => _CategoryCard(
                                         category: provider.categories[index],
                                         index: index,
-                                        ref: ref,
-                                        context: context,
                                       ),
                                       childCount: provider.categories.length,
                                     ),
@@ -162,14 +160,10 @@ class _EmptyState extends StatelessWidget {
 class _CategoryCard extends StatelessWidget {
   final CategoryEntity category;
   final int index;
-  final WidgetRef ref;
-  final BuildContext context;
 
   const _CategoryCard({
     required this.category,
     required this.index,
-    required this.ref,
-    required this.context,
   });
 
   @override
@@ -178,15 +172,21 @@ class _CategoryCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final typeColor = _colorForType(category.categoryType);
     final typeLabel = _labelForType(category.categoryType);
+    final isInactive = !category.isActive;
 
-    return Container(
+    final card = Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark
+            ? (isInactive ? const Color(0xFF1A1F2E) : const Color(0xFF1E293B))
+            : (isInactive ? const Color(0xFFFAFAFA) : Colors.white),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          color: isInactive
+              ? const Color(0xFFF59E0B).withValues(alpha: 0.6)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          width: isInactive ? 1.5 : 1.0,
         ),
         boxShadow: isDark
             ? []
@@ -205,12 +205,12 @@ class _CategoryCard extends StatelessWidget {
             width: 50.r,
             height: 50.r,
             decoration: BoxDecoration(
-              color: typeColor.withValues(alpha: 0.12),
+              color: typeColor.withValues(alpha: isInactive ? 0.06 : 0.12),
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Icon(
               _iconForType(category.categoryType),
-              color: typeColor,
+              color: typeColor.withValues(alpha: isInactive ? 0.5 : 1.0),
               size: 26.r,
             ),
           ),
@@ -226,6 +226,8 @@ class _CategoryCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: isInactive ? 0.5 : 1.0),
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -242,12 +244,32 @@ class _CategoryCard extends StatelessWidget {
                         typeLabel,
                         style: TextStyle(
                           fontSize: 11.sp,
-                          color: typeColor,
+                          color: typeColor.withValues(
+                              alpha: isInactive ? 0.5 : 1.0),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
-                    if (category.description != null &&
+                    if (isInactive) ...[
+                      SizedBox(width: 6.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 7.w, vertical: 2.h),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Text(
+                          'Inactive',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: const Color(0xFFD97706),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ] else if (category.description != null &&
                         category.description!.isNotEmpty) ...[
                       SizedBox(width: 8.w),
                       Flexible(
@@ -267,94 +289,11 @@ class _CategoryCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // Menu
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert_rounded,
-                size: 20.r,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r)),
-            onSelected: (value) async {
-              if (value == 'edit') {
-                await context.push(
-                  AppRouter.editCategory,
-                  extra: category,
-                );
-                await refreshAll(ref);
-                return;
-              }
-
-              if (value == 'delete') {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Delete Category'),
-                    content: Text(
-                      'Are you sure you want to delete "${category.name}"?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm == true && context.mounted) {
-                  final success = await ref
-                      .read(categoriesProvider)
-                      .deleteCategory(category.id);
-
-                  if (success) {
-                    await refreshAll(ref);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Category deleted successfully')),
-                      );
-                    }
-                  }
-                }
-              }
-            },
-            itemBuilder: (ctx) => [
-              const PopupMenuItem(
-                value: 'edit',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit_outlined, size: 18),
-                    SizedBox(width: 8),
-                    Text('Edit'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.delete_outline_rounded,
-                      size: 18,
-                      color: Colors.red,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Delete',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ],
       ),
-    )
+    );
+
+    final animated = card
         .animate()
         .fadeIn(
             delay: Duration(milliseconds: index * 80 + 200), duration: 500.ms)
@@ -363,6 +302,12 @@ class _CategoryCard extends StatelessWidget {
             end: 0,
             delay: Duration(milliseconds: index * 80 + 200),
             duration: 500.ms);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(20.r),
+      onTap: () => context.push(AppRouter.categoryDetails, extra: category),
+      child: animated,
+    );
   }
 
   IconData _iconForType(int type) {

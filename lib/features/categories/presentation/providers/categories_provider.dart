@@ -1,4 +1,3 @@
-import 'package:expense_tracker/core/storage/auth_storage.dart';
 import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/categories/data/models/update_category_request.dart';
 import 'package:flutter/material.dart';
@@ -9,42 +8,32 @@ import '../../domain/repositories/category_repository.dart';
 
 class CategoriesProvider extends ChangeNotifier {
   final CategoryRepository repository;
-  final AuthStorage _authStorage;
 
-  CategoriesProvider(this.repository, this._authStorage) {
+  CategoriesProvider(this.repository) {
     loadCategories();
   }
 
   bool isLoading = false;
   List<CategoryEntity> categories = [];
 
-  Future<String?> get _userId => _authStorage.getUserId();
-
   Future<void> loadCategories() async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final userId = await _userId;
-      if (userId == null) return;
-
-      categories = await repository.getCategories(userId);
+      categories = await repository.getCategories();
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> createCategory(
-      CategoryRequest request,
-      ) async {
+  Future<bool> createCategory(CategoryRequest request) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final category =
-      await repository.createCategory(request);
-
+      final category = await repository.createCategory(request);
       categories.add(category);
 
       return true;
@@ -56,20 +45,14 @@ class CategoriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateCategory(
-      UpdateCategoryRequest request,
-      ) async {
+  Future<bool> updateCategory(UpdateCategoryRequest request) async {
     try {
       isLoading = true;
       notifyListeners();
 
-      final updatedCategory =
-      await repository.updateCategory(request);
+      final updatedCategory = await repository.updateCategory(request);
 
-      final index = categories.indexWhere(
-            (e) => e.id == updatedCategory.id,
-      );
-
+      final index = categories.indexWhere((e) => e.id == updatedCategory.id);
       if (index != -1) {
         categories[index] = updatedCategory;
       }
@@ -89,7 +72,6 @@ class CategoriesProvider extends ChangeNotifier {
       notifyListeners();
 
       await repository.deleteCategory(id);
-
       categories.removeWhere((e) => e.id == id);
 
       return true;
@@ -100,12 +82,14 @@ class CategoriesProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void reset() {
+    categories = [];
+    isLoading = false;
+    notifyListeners();
+  }
 }
 
-final categoriesProvider =
-ChangeNotifierProvider<CategoriesProvider>((ref) {
-  return CategoriesProvider(
-    locator<CategoryRepository>(),
-    locator<AuthStorage>(),
-  );
+final categoriesProvider = ChangeNotifierProvider<CategoriesProvider>((ref) {
+  return CategoriesProvider(locator<CategoryRepository>());
 });

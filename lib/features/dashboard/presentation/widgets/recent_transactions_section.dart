@@ -119,8 +119,8 @@ class _TransactionListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isIncome = transaction.isIncome;
-    final title = transaction.paidTo.isNotEmpty
-        ? transaction.paidTo
+    final title = transaction.party.isNotEmpty
+        ? transaction.party
         : (transaction.notes.isNotEmpty ? transaction.notes : (isIncome ? 'Income' : 'Expense'));
 
     return Container(

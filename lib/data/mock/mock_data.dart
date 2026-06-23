@@ -30,6 +30,7 @@ class MockData {
       name: 'Cash Wallet',
       description: 'Mock Account',
       openingBalance: 1500,
+      currentBalance: 1500,
       isActive: true,
       accountType: 2,
       createdAt: DateTime.now(),
@@ -48,7 +49,7 @@ class MockData {
       amount: 85000,
       transactionType: 1, // Income
       transactionDate: DateTime(2024, 6, 1),
-      paidTo: '',
+      party: '',
       notes: '',
       createdAt: DateTime(2024, 6, 1),
     ),
@@ -60,7 +61,7 @@ class MockData {
       amount: 499,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 3),
-      paidTo: 'Netflix',
+      party: 'Netflix',
       notes: 'Netflix Subscription',
       createdAt: DateTime(2024, 6, 3),
     ),
@@ -72,7 +73,7 @@ class MockData {
       amount: 1250,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 5),
-      paidTo: '',
+      party: '',
       notes: 'Grocery Shopping',
       createdAt: DateTime(2024, 6, 5),
     ),
@@ -84,7 +85,7 @@ class MockData {
       amount: 680,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 7),
-      paidTo: '',
+      party: '',
       notes: 'Restaurant Lunch',
       createdAt: DateTime(2024, 6, 7),
     ),
@@ -96,7 +97,7 @@ class MockData {
       amount: 2399,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 9),
-      paidTo: 'Amazon',
+      party: 'Amazon',
       notes: 'Amazon Purchase',
       createdAt: DateTime(2024, 6, 9),
     ),
@@ -108,7 +109,7 @@ class MockData {
       amount: 15000,
       transactionType: 1, // Income
       transactionDate: DateTime(2024, 6, 11),
-      paidTo: '',
+      party: '',
       notes: 'Freelance Payment',
       createdAt: DateTime(2024, 6, 11),
     ),
@@ -120,7 +121,7 @@ class MockData {
       amount: 850,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 12),
-      paidTo: 'Ola',
+      party: 'Ola',
       notes: 'Ola Cab Rides',
       createdAt: DateTime(2024, 6, 12),
     ),
@@ -132,7 +133,7 @@ class MockData {
       amount: 1800,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 13),
-      paidTo: '',
+      party: '',
       notes: 'Electricity Bill',
       createdAt: DateTime(2024, 6, 13),
     ),
@@ -144,7 +145,7 @@ class MockData {
       amount: 3500,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 14),
-      paidTo: '',
+      party: '',
       notes: 'Medical Checkup',
       createdAt: DateTime(2024, 6, 14),
     ),
@@ -156,7 +157,7 @@ class MockData {
       amount: 5000,
       transactionType: 2, // Expense
       transactionDate: DateTime(2024, 6, 15),
-      paidTo: '',
+      party: '',
       notes: 'Online Course',
       createdAt: DateTime(2024, 6, 15),
     ),

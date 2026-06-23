@@ -121,6 +121,13 @@ class AccountsProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void reset() {
+    accounts = [];
+    selectedAccount = null;
+    isLoading = false;
+    notifyListeners();
+  }
 }
 
 /// Riverpod Provider

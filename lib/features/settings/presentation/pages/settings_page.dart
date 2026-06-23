@@ -1,3 +1,4 @@
+import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:expense_tracker/features/auth/presentation/providers/auth_provider.dart';
 import 'package:expense_tracker/features/settings/presentation/pages/edit_profile_page.dart';
 import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
@@ -194,6 +195,7 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
     if (confirm == true && context.mounted) {
+      clearAll(ref);
       await ref.read(authProvider.notifier).logout();
       if (context.mounted) context.go(AppRouter.getStarted);
     }

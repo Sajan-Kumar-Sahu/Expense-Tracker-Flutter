@@ -116,7 +116,7 @@ class _TransactionDetailsPageState
                 amount: transaction.amount,
                 transactionType: transaction.transactionType,
                 date: transaction.transactionDate,
-                paidTo: transaction.paidTo,
+                party: transaction.party,
               ),
             ),
           ),
@@ -160,14 +160,16 @@ class _TransactionDetailsPageState
                         valueColor:
                         _typeColor(context, transaction.transactionType),
                       ),
-                      if (transaction.paidTo.isNotEmpty) ...[
+                      if (transaction.party.isNotEmpty) ...[
                         _CardDivider(),
                         _DetailRow(
                           iconData: Icons.person_outline_rounded,
                           iconBg: const Color(0xFFE1F5EE),
                           iconColor: const Color(0xFF0F6E56),
-                          label: 'Paid to',
-                          value: transaction.paidTo,
+                          label: transaction.transactionType == 1
+                              ? 'Received from'
+                              : 'Paid to',
+                          value: transaction.party,
                         ),
                       ],
                       _CardDivider(),
@@ -319,13 +321,13 @@ class _HeroSection extends StatelessWidget {
   final double amount;
   final int transactionType;
   final DateTime date;
-  final String paidTo;
+  final String party;
 
   const _HeroSection({
     required this.amount,
     required this.transactionType,
     required this.date,
-    required this.paidTo,
+    required this.party,
   });
 
   @override
@@ -410,7 +412,7 @@ class _HeroSection extends StatelessWidget {
           // Sub-line: paid to · date
           Text(
             [
-              if (paidTo.isNotEmpty) paidTo,
+              if (party.isNotEmpty) party,
               DateFormat('dd MMM yyyy').format(date),
             ].join(' · '),
             style: TextStyle(

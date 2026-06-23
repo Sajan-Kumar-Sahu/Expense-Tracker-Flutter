@@ -1,6 +1,5 @@
 class UpdateAccountRequest {
   final String id;
-  final String userId;
   final String name;
   final String? description;
   final bool isActive;
@@ -8,7 +7,6 @@ class UpdateAccountRequest {
 
   UpdateAccountRequest({
     required this.id,
-    required this.userId,
     required this.name,
     this.description,
     required this.isActive,
@@ -17,12 +15,11 @@ class UpdateAccountRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
-      "userId": userId,
-      "name": name,
-      "description": description,
-      "isActive": isActive,
-      "accountType": accountType,
+      'id': id,
+      'name': name,
+      'description': description,
+      'isActive': isActive,
+      'accountType': accountType,
     };
   }
 }

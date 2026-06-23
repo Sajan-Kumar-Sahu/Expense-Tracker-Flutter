@@ -21,6 +21,7 @@ class TransactionListPage extends ConsumerStatefulWidget {
 class _TransactionListPageState
     extends ConsumerState<TransactionListPage> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _selectedFilter = 'All';
   List<TransactionEntity> _filteredTransactions = [];
 
@@ -30,16 +31,25 @@ class _TransactionListPageState
   void initState() {
     super.initState();
     _searchController.addListener(_applyFilter);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   void _applyFilter() {
     setState(() {});
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(transactionsProvider).loadMore();
+    }
   }
 
   Future<void> _onRefresh() async {
@@ -64,7 +74,7 @@ class _TransactionListPageState
 
           final matchesQuery =
               query.isEmpty ||
-                  t.paidTo.toLowerCase().contains(query);
+                  t.party.toLowerCase().contains(query);
 
           final matchesFilter =
               _selectedFilter == 'All' ||
@@ -244,6 +254,7 @@ class _TransactionListPageState
                 child: _filteredTransactions.isEmpty
                     ? _EmptyState(theme: theme)
                     : ListView.builder(
+                  controller: _scrollController,
                   padding: EdgeInsets.fromLTRB(
                     20.w,
                     0,
@@ -254,9 +265,17 @@ class _TransactionListPageState
                   const AlwaysScrollableScrollPhysics(
                     parent: BouncingScrollPhysics(),
                   ),
-                  itemCount:
-                  _filteredTransactions.length,
+                  itemCount: _filteredTransactions.length +
+                      (provider.hasMore ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == _filteredTransactions.length) {
+                      return Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
                     return _TransactionCard(
                       transaction:
                       _filteredTransactions[index],
@@ -337,7 +356,13 @@ class _TransactionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.paidTo,
+                  transaction.party.isNotEmpty
+                      ? transaction.party
+                      : (transaction.transactionType == 1
+                          ? 'Income'
+                          : transaction.transactionType == 2
+                              ? 'Expense'
+                              : 'Transfer'),
                   style: TextStyle(
                       fontSize: 14.sp, fontWeight: FontWeight.w600),
                   maxLines: 1,

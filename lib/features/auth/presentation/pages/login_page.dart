@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/app_refresh.dart';
 import '../../../../routes/app_router.dart';
 import '../providers/auth_provider.dart';
 
@@ -16,73 +17,52 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _emailController = TextEditingController();
-  final _emailFocus = FocusNode();
-  String _pin = '';
-  bool _isEmailValid = false;
-  bool _showEmailError = false;
+  final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _mobileFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+
+  bool _obscurePassword = true;
+  bool _showMobileError = false;
+  bool _showPasswordError = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _emailFocus.dispose();
+    _mobileController.dispose();
+    _passwordController.dispose();
+    _mobileFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
-  void _onEmailChanged(String value) {
-    setState(() {
-      _isEmailValid = _validateEmail(value);
-      _showEmailError = false;
-    });
-  }
+  bool get _isMobileValid =>
+      RegExp(r'^\d{10}$').hasMatch(_mobileController.text.trim());
 
-  bool _validateEmail(String email) {
-    return RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email.trim());
-  }
-
-  void _onDigitTap(String digit) {
-    if (_pin.length >= 4) return;
-    HapticFeedback.lightImpact();
-    setState(() => _pin += digit);
-
-    // Auto-submit when PIN is complete and email is valid
-    if (_pin.length == 4 && _isEmailValid) {
-      _login();
-    }
-  }
-
-  void _onDeleteTap() {
-    if (_pin.isEmpty) return;
-    HapticFeedback.lightImpact();
-    setState(() => _pin = _pin.substring(0, _pin.length - 1));
-  }
-
-  void _onClearTap() {
-    if (_pin.isEmpty) return;
-    HapticFeedback.mediumImpact();
-    setState(() => _pin = '');
-  }
+  bool get _isPasswordValid => _passwordController.text.length >= 4;
 
   Future<void> _login() async {
-    if (!_isEmailValid) {
-      setState(() => _showEmailError = true);
-      return;
-    }
-    if (_pin.length < 4) return;
+    setState(() {
+      _showMobileError = !_isMobileValid;
+      _showPasswordError = !_isPasswordValid;
+    });
 
-    _emailFocus.unfocus();
+    if (!_isMobileValid || !_isPasswordValid) return;
+
+    _mobileFocus.unfocus();
+    _passwordFocus.unfocus();
 
     final success = await ref.read(authProvider.notifier).login(
-          _emailController.text.trim(),
-          _pin,
+          _mobileController.text.trim(),
+          _passwordController.text,
         );
 
     if (!mounted) return;
 
     if (success) {
+      await refreshAll(ref);
+      if (!mounted) return;
       context.go(AppRouter.home);
     } else {
-      setState(() => _pin = '');
       final authState = ref.read(authProvider);
       final message =
           authState is AuthError ? authState.message : 'Login failed';
@@ -91,8 +71,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           content: Text(message),
           backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.r)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         ),
       );
     }
@@ -113,17 +93,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             top: 0,
             left: 0,
             right: 0,
-            height: 0.42.sh,
+            height: 0.38.sh,
             child: const _GradientHeader(),
           ),
 
-          // Scrollable content
           SafeArea(
             child: Column(
               children: [
                 // Top branding area
                 SizedBox(
-                  height: 0.32.sh,
+                  height: 0.28.sh,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -195,199 +174,110 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ],
                     ),
-                    child: Column(
-                      children: [
-                        // Scrollable inputs + numpad
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: EdgeInsets.fromLTRB(24.w, 28.h, 24.w, 16.h),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Email field
-                                Text(
-                                  'Email Address',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                    letterSpacing: 0.5,
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 400.ms, duration: 400.ms),
-                                SizedBox(height: 8.h),
-                                TextField(
-                                  controller: _emailController,
-                                  focusNode: _emailFocus,
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.done,
-                                  onChanged: _onEmailChanged,
-                                  onSubmitted: (_) => _emailFocus.unfocus(),
-                                  style: TextStyle(fontSize: 15.sp),
-                                  decoration: InputDecoration(
-                                    hintText: 'you@example.com',
-                                    hintStyle: TextStyle(
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.35),
-                                      fontSize: 14.sp,
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.email_outlined,
-                                      size: 20.r,
-                                      color: _showEmailError
-                                          ? theme.colorScheme.error
-                                          : theme.colorScheme.primary,
-                                    ),
-                                    errorText: _showEmailError
-                                        ? 'Enter a valid email address'
-                                        : null,
-                                    filled: true,
-                                    fillColor: isDark
-                                        ? const Color(0xFF1E293B)
-                                        : const Color(0xFFF8FAFC),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14.r),
-                                      borderSide: BorderSide(
-                                        color: theme.colorScheme.outline
-                                            .withValues(alpha: 0.3),
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14.r),
-                                      borderSide: BorderSide(
-                                        color: isDark
-                                            ? const Color(0xFF334155)
-                                            : const Color(0xFFE2E8F0),
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14.r),
-                                      borderSide: BorderSide(
-                                        color: theme.colorScheme.primary,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    errorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14.r),
-                                      borderSide: BorderSide(
-                                        color: theme.colorScheme.error,
-                                      ),
-                                    ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(14.r),
-                                      borderSide: BorderSide(
-                                        color: theme.colorScheme.error,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 450.ms, duration: 400.ms)
-                                    .slideY(
-                                        begin: 0.1,
-                                        end: 0,
-                                        delay: 450.ms,
-                                        duration: 400.ms),
-
-                                SizedBox(height: 24.h),
-
-                                // PIN label
-                                Text(
-                                  'Enter 4-Digit PIN',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                    letterSpacing: 0.5,
-                                  ),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 550.ms, duration: 400.ms),
-
-                                SizedBox(height: 14.h),
-
-                                // PIN dots
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(4, (i) {
-                                    final filled = i < _pin.length;
-                                    return AnimatedContainer(
-                                      duration: 200.ms,
-                                      margin: EdgeInsets.symmetric(
-                                          horizontal: 10.w),
-                                      width: filled ? 20.r : 16.r,
-                                      height: filled ? 20.r : 16.r,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: filled
-                                            ? theme.colorScheme.primary
-                                            : Colors.transparent,
-                                        border: Border.all(
-                                          color: filled
-                                              ? theme.colorScheme.primary
-                                              : theme.colorScheme.onSurface
-                                                  .withValues(alpha: 0.3),
-                                          width: 2,
-                                        ),
-                                        boxShadow: filled
-                                            ? [
-                                                BoxShadow(
-                                                  color: theme
-                                                      .colorScheme.primary
-                                                      .withValues(alpha: 0.4),
-                                                  blurRadius: 8,
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                    );
-                                  }),
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 600.ms, duration: 400.ms),
-
-                                SizedBox(height: 20.h),
-
-                                // Number pad
-                                _NumPad(
-                                  onDigit: _onDigitTap,
-                                  onDelete: _onDeleteTap,
-                                  onClear: _onClearTap,
-                                  isLoading: isLoading,
-                                )
-                                    .animate()
-                                    .fadeIn(delay: 650.ms, duration: 400.ms)
-                                    .slideY(
-                                        begin: 0.1,
-                                        end: 0,
-                                        delay: 650.ms,
-                                        duration: 400.ms),
-                              ],
+                    child: SingleChildScrollView(
+                      padding:
+                          EdgeInsets.fromLTRB(24.w, 32.h, 24.w, 24.h),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Mobile number field
+                          _FieldLabel(label: 'Mobile Number')
+                              .animate()
+                              .fadeIn(delay: 400.ms, duration: 400.ms),
+                          SizedBox(height: 8.h),
+                          TextField(
+                            controller: _mobileController,
+                            focusNode: _mobileFocus,
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
+                            maxLength: 10,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            onChanged: (_) =>
+                                setState(() => _showMobileError = false),
+                            onSubmitted: (_) =>
+                                FocusScope.of(context).requestFocus(_passwordFocus),
+                            style: TextStyle(fontSize: 15.sp),
+                            decoration: _inputDecoration(
+                              context: context,
+                              isDark: isDark,
+                              hintText: '10-digit mobile number',
+                              prefixIcon: Icons.phone_outlined,
+                              hasError: _showMobileError,
+                              errorText: _showMobileError
+                                  ? 'Enter a valid 10-digit mobile number'
+                                  : null,
+                              counterText: '',
                             ),
-                          ),
-                        ),
+                          )
+                              .animate()
+                              .fadeIn(delay: 450.ms, duration: 400.ms)
+                              .slideY(
+                                  begin: 0.1,
+                                  end: 0,
+                                  delay: 450.ms,
+                                  duration: 400.ms),
 
-                        // Login button — pinned outside scroll, always visible
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(24.w, 8.h, 24.w, 24.h),
-                          child: SizedBox(
+                          SizedBox(height: 20.h),
+
+                          // Password field
+                          _FieldLabel(label: 'Password')
+                              .animate()
+                              .fadeIn(delay: 500.ms, duration: 400.ms),
+                          SizedBox(height: 8.h),
+                          TextField(
+                            controller: _passwordController,
+                            focusNode: _passwordFocus,
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            onChanged: (_) =>
+                                setState(() => _showPasswordError = false),
+                            onSubmitted: (_) => _login(),
+                            style: TextStyle(fontSize: 15.sp),
+                            decoration: _inputDecoration(
+                              context: context,
+                              isDark: isDark,
+                              hintText: 'Enter your password',
+                              prefixIcon: Icons.lock_outline_rounded,
+                              hasError: _showPasswordError,
+                              errorText: _showPasswordError
+                                  ? 'Password must be at least 4 characters'
+                                  : null,
+                              suffixIcon: GestureDetector(
+                                onTap: () => setState(
+                                    () => _obscurePassword = !_obscurePassword),
+                                child: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  size: 20.r,
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.45),
+                                ),
+                              ),
+                            ),
+                          )
+                              .animate()
+                              .fadeIn(delay: 550.ms, duration: 400.ms)
+                              .slideY(
+                                  begin: 0.1,
+                                  end: 0,
+                                  delay: 550.ms,
+                                  duration: 400.ms),
+
+                          SizedBox(height: 32.h),
+
+                          // Login button
+                          SizedBox(
                             width: double.infinity,
                             height: 54.h,
                             child: ElevatedButton(
-                              onPressed: isLoading ||
-                                      _pin.length < 4 ||
-                                      !_isEmailValid
-                                  ? null
-                                  : _login,
+                              onPressed: isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.colorScheme.primary,
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor: theme
-                                    .colorScheme.primary
+                                disabledBackgroundColor: theme.colorScheme.primary
                                     .withValues(alpha: 0.35),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -411,9 +301,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       ),
                                     ),
                             ),
-                          ).animate().fadeIn(delay: 750.ms, duration: 400.ms),
-                        ),
-                      ],
+                          )
+                              .animate()
+                              .fadeIn(delay: 650.ms, duration: 400.ms),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -421,6 +313,81 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required BuildContext context,
+    required bool isDark,
+    required String hintText,
+    required IconData prefixIcon,
+    required bool hasError,
+    String? errorText,
+    String? counterText,
+    Widget? suffixIcon,
+  }) {
+    final theme = Theme.of(context);
+    return InputDecoration(
+      hintText: hintText,
+      counterText: counterText,
+      hintStyle: TextStyle(
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
+        fontSize: 14.sp,
+      ),
+      prefixIcon: Icon(
+        prefixIcon,
+        size: 20.r,
+        color: hasError ? theme.colorScheme.error : theme.colorScheme.primary,
+      ),
+      suffixIcon: suffixIcon,
+      errorText: errorText,
+      filled: true,
+      fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide(
+          color:
+              isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide:
+            BorderSide(color: theme.colorScheme.primary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide: BorderSide(color: theme.colorScheme.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14.r),
+        borderSide:
+            BorderSide(color: theme.colorScheme.error, width: 1.5),
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  final String label;
+  const _FieldLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        letterSpacing: 0.5,
       ),
     );
   }
@@ -444,133 +411,6 @@ class _GradientHeader extends StatelessWidget {
           stops: [0.0, 0.5, 1.0],
         ),
       ),
-    );
-  }
-}
-
-class _NumPad extends StatelessWidget {
-  final void Function(String) onDigit;
-  final VoidCallback onDelete;
-  final VoidCallback onClear;
-  final bool isLoading;
-
-  const _NumPad({
-    required this.onDigit,
-    required this.onDelete,
-    required this.onClear,
-    required this.isLoading,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    Widget numKey(String label) {
-      return Expanded(
-        child: GestureDetector(
-          onTap: isLoading ? null : () => onDigit(label),
-          child: AnimatedContainer(
-            duration: 100.ms,
-            margin: EdgeInsets.all(5.r),
-            height: 50.h,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 19.sp,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    Widget deleteKey() {
-      return Expanded(
-        child: GestureDetector(
-          onTap: isLoading ? null : onDelete,
-          child: Container(
-            margin: EdgeInsets.all(5.r),
-            height: 50.h,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-              ),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.backspace_outlined,
-                size: 19.r,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    Widget clearKey() {
-      return Expanded(
-        child: GestureDetector(
-          onTap: isLoading ? null : onClear,
-          child: Container(
-            margin: EdgeInsets.all(5.r),
-            height: 50.h,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                'C',
-                style: TextStyle(
-                  fontSize: 17.sp,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.error.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        Row(children: ['1', '2', '3'].map(numKey).toList()),
-        Row(children: ['4', '5', '6'].map(numKey).toList()),
-        Row(children: ['7', '8', '9'].map(numKey).toList()),
-        Row(children: [clearKey(), numKey('0'), deleteKey()]),
-      ],
     );
   }
 }

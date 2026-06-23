@@ -1,4 +1,3 @@
-import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,128 +89,82 @@ class AccountListPage extends ConsumerWidget {
             Expanded(
               child: provider.isLoading
                   ? const AppLoader(
-                message: 'Loading accounts...',
-              )
+                      message: 'Loading accounts...',
+                    )
                   : RefreshIndicator(
-                onRefresh: () async {
-                  await ref
-                      .read(accountsProvider)
-                      .loadAccounts();
-                },
-                color: theme.colorScheme.primary,
-                child: Builder(
-                  builder: (context) {
-                    final accounts =
-                        provider.accounts;
+                      onRefresh: () async {
+                        await ref.read(accountsProvider).loadAccounts();
+                      },
+                      color: theme.colorScheme.primary,
+                      child: Builder(
+                        builder: (context) {
+                          final accounts = provider.accounts;
+                          final displayAccounts =
+                              accounts.isEmpty ? MockData.accounts : accounts;
+                          final isMock = accounts.isEmpty;
 
-                    final displayAccounts =
-                    accounts.isEmpty
-                        ? MockData.accounts
-                        : accounts;
-
-                    final isMock =
-                        accounts.isEmpty;
-
-                    return CustomScrollView(
-                      physics:
-                      const AlwaysScrollableScrollPhysics(
-                        parent:
-                        BouncingScrollPhysics(),
-                      ),
-                      slivers: [
-                        if (isMock)
-                          SliverToBoxAdapter(
-                            child: Container(
-                              margin:
-                              EdgeInsets.fromLTRB(
-                                  20.w,
-                                  0,
-                                  20.w,
-                                  12.h),
-                              padding:
-                              EdgeInsets.all(12.r),
-                              decoration:
-                              BoxDecoration(
-                                color: theme
-                                    .colorScheme
-                                    .primary
-                                    .withValues(
-                                    alpha: 0.08),
-                                borderRadius:
-                                BorderRadius
-                                    .circular(
-                                    12.r),
-                                border: Border.all(
-                                  color: theme
-                                      .colorScheme
-                                      .primary
-                                      .withValues(
-                                      alpha:
-                                      0.2),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons
-                                        .info_outline_rounded,
-                                    color: theme
-                                        .colorScheme
-                                        .primary,
-                                    size: 16.r,
-                                  ),
-                                  SizedBox(
-                                      width: 8.w),
-                                  Expanded(
-                                    child: Text(
-                                      'Showing mock data — connect your backend to see real accounts.',
-                                      style:
-                                      TextStyle(
-                                        fontSize:
-                                        12.sp,
-                                        color: theme
-                                            .colorScheme
-                                            .primary,
+                          return CustomScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            slivers: [
+                              if (isMock)
+                                SliverToBoxAdapter(
+                                  child: Container(
+                                    margin: EdgeInsets.fromLTRB(
+                                        20.w, 0, 20.w, 12.h),
+                                    padding: EdgeInsets.all(12.r),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.08),
+                                      borderRadius:
+                                          BorderRadius.circular(12.r),
+                                      border: Border.all(
+                                        color: theme.colorScheme.primary
+                                            .withValues(alpha: 0.2),
                                       ),
                                     ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline_rounded,
+                                          color: theme.colorScheme.primary,
+                                          size: 16.r,
+                                        ),
+                                        SizedBox(width: 8.w),
+                                        Expanded(
+                                          child: Text(
+                                            'Showing mock data — connect your backend to see real accounts.',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color:
+                                                  theme.colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
+                                ),
+                              SliverPadding(
+                                padding: EdgeInsets.fromLTRB(
+                                    20.w, 0, 20.w, 110.h),
+                                sliver: SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) => _AccountCard(
+                                      account: displayAccounts[index],
+                                      index: index,
+                                      isEditable: !isMock,
+                                    ),
+                                    childCount: displayAccounts.length,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        SliverPadding(
-                          padding:
-                          EdgeInsets.fromLTRB(
-                              20.w,
-                              0,
-                              20.w,
-                              110.h),
-                          sliver: SliverList(
-                            delegate:
-                            SliverChildBuilderDelegate(
-                                  (context, index) =>
-                                  _AccountCard(
-                                    account:
-                                    displayAccounts[
-                                    index],
-                                    index: index,
-                                    isEditable:
-                                    !isMock,
-                                    ref: ref,
-                                    context:
-                                    context,
-                                  ),
-                              childCount:
-                              displayAccounts
-                                  .length,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -224,32 +177,34 @@ class _AccountCard extends StatelessWidget {
   final AccountEntity account;
   final int index;
   final bool isEditable;
-  final WidgetRef ref;
-  final BuildContext context;
 
   const _AccountCard({
     required this.account,
     required this.index,
     required this.isEditable,
-    required this.ref,
-    required this.context,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isNegative = account.openingBalance < 0;
+    final isNegative = account.currentBalance < 0;
     final accentColor = _colorForType(account.accountType);
+    final isInactive = !account.isActive;
 
-    return Container(
+    final card = Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark
+            ? (isInactive ? const Color(0xFF1A1F2E) : const Color(0xFF1E293B))
+            : (isInactive ? const Color(0xFFFAFAFA) : Colors.white),
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          color: isInactive
+              ? const Color(0xFFF59E0B).withValues(alpha: 0.6)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          width: isInactive ? 1.5 : 1.0,
         ),
         boxShadow: isDark
             ? []
@@ -268,12 +223,12 @@ class _AccountCard extends StatelessWidget {
             width: 50.r,
             height: 50.r,
             decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
+              color: accentColor.withValues(alpha: isInactive ? 0.06 : 0.12),
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Icon(
               _iconForType(account.accountType),
-              color: accentColor,
+              color: accentColor.withValues(alpha: isInactive ? 0.5 : 1.0),
               size: 26.r,
             ),
           ),
@@ -289,44 +244,72 @@ class _AccountCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface
+                        .withValues(alpha: isInactive ? 0.5 : 1.0),
                   ),
                 ),
-                SizedBox(height: 3.h),
-                Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Text(
-                    _accountTypeText(account.accountType),
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: accentColor,
-                      fontWeight: FontWeight.w600,
+                SizedBox(height: 4.h),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 8.w, vertical: 2.h),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Text(
+                        _accountTypeText(account.accountType),
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color:
+                              accentColor.withValues(alpha: isInactive ? 0.5 : 1.0),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (isInactive) ...[
+                      SizedBox(width: 6.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 7.w, vertical: 2.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6.r),
+                        ),
+                        child: Text(
+                          'Inactive',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: const Color(0xFFD97706),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
 
-          // Balance + menu
+          // Balance
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                CurrencyFormatter.format(account.openingBalance.abs()),
+                CurrencyFormatter.format(account.currentBalance.abs()),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w800,
-                  color: isNegative
-                      ? const Color(0xFFEF4444)
-                      : const Color(0xFF10B981),
+                  color: isInactive
+                      ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                      : (isNegative
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF10B981)),
                 ),
               ),
-              if (isNegative)
+              if (isNegative && !isInactive)
                 Text(
                   'Credit Due',
                   style: TextStyle(
@@ -337,106 +320,39 @@ class _AccountCard extends StatelessWidget {
                 ),
             ],
           ),
-          if (isEditable) ...[
-            SizedBox(width: 4.w),
-            PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert_rounded,
-                  size: 20.r,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r)),
-              onSelected: (value) async {
-                if (value == 'edit') {
-                  await context.push(AppRouter.editAccount, extra: account);
-                  await refreshAll(ref);
-                } else if (value == 'delete') {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Delete Account'),
-                      content: Text(
-                          'Are you sure you want to delete "${account.name}"?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          style: TextButton.styleFrom(
-                            foregroundColor: theme.colorScheme.error,
-                          ),
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (confirm == true && context.mounted) {
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    final success = await ref
-                        .read(accountsProvider)
-                        .deleteAccount(account.id);
-                    if (success) {
-                      await refreshAll(ref);
-                      scaffoldMessenger.showSnackBar(
-                        const SnackBar(content: Text('Account deleted successfully')),
-                      );
-                    }
-                  }
-                }
-              },
-              itemBuilder: (ctx) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit_rounded, size: 18),
-                      SizedBox(width: 8),
-                      Text('Edit'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline_rounded,
-                          size: 18, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Delete',
-                          style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
-    )
+    );
+
+    final animated = card
         .animate()
-        .fadeIn(delay: Duration(milliseconds: index * 80 + 200), duration: 500.ms)
+        .fadeIn(
+            delay: Duration(milliseconds: index * 80 + 200), duration: 500.ms)
         .slideX(
             begin: 0.08,
             end: 0,
             delay: Duration(milliseconds: index * 80 + 200),
             duration: 500.ms);
+
+    if (!isEditable) return animated;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(20.r),
+      onTap: () => context.push(AppRouter.accountDetails, extra: account),
+      child: animated,
+    );
   }
 
   IconData _iconForType(int type) {
     switch (type) {
       case 1:
         return Icons.account_balance_rounded;
-
       case 2:
         return Icons.wallet_rounded;
-
       case 3:
         return Icons.credit_card_rounded;
-
       case 4:
         return Icons.account_balance_wallet_rounded;
-
       default:
         return Icons.wallet_rounded;
     }
@@ -446,34 +362,27 @@ class _AccountCard extends StatelessWidget {
     switch (type) {
       case 1:
         return const Color(0xFF6366F1);
-
       case 2:
         return const Color(0xFF10B981);
-
       case 3:
         return const Color(0xFFEF4444);
-
       case 4:
         return const Color(0xFFF59E0B);
-
       default:
         return const Color(0xFF8B5CF6);
     }
   }
+
   String _accountTypeText(int type) {
     switch (type) {
       case 1:
         return 'Bank';
-
       case 2:
         return 'Cash';
-
       case 3:
         return 'Credit Card';
-
       case 4:
         return 'Wallet';
-
       default:
         return 'Unknown';
     }

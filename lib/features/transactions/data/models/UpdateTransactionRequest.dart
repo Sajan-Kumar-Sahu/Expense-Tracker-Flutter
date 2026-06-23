@@ -10,7 +10,7 @@ class UpdateTransactionRequest {
 
   final DateTime transactionDate;
 
-  final String paidTo;
+  final String party;
   final String notes;
 
   UpdateTransactionRequest({
@@ -21,7 +21,7 @@ class UpdateTransactionRequest {
     required this.transactionType,
     required this.amount,
     required this.transactionDate,
-    required this.paidTo,
+    required this.party,
     required this.notes,
   });
 
@@ -34,7 +34,7 @@ class UpdateTransactionRequest {
       'transactionType': transactionType,
       'amount': amount,
       'transactionDate': transactionDate.toUtc().toIso8601String(),
-      'paidTo': paidTo,
+      'party': party,
       'notes': notes,
     };
   }

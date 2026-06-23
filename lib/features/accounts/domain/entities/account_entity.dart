@@ -4,6 +4,7 @@ class AccountEntity {
   final String name;
   final String? description;
   final double openingBalance;
+  final double currentBalance;
   final bool isActive;
   final int accountType;
   final DateTime createdAt;
@@ -14,6 +15,7 @@ class AccountEntity {
     required this.name,
     this.description,
     required this.openingBalance,
+    required this.currentBalance,
     required this.isActive,
     required this.accountType,
     required this.createdAt,

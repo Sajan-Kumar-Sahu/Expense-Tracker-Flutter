@@ -68,7 +68,7 @@ class GetStartedPage extends StatelessWidget {
 
               // App name
               Text(
-                'ExpenseTracker',
+                'ArthiqHQ',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 30.sp,

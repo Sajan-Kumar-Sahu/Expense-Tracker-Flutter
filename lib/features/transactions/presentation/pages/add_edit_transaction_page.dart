@@ -1,6 +1,4 @@
-import 'package:expense_tracker/core/storage/auth_storage.dart';
 import 'package:expense_tracker/core/utils/app_refresh.dart';
-import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/accounts/presentation/providers/accounts_provider.dart';
 import 'package:expense_tracker/features/categories/presentation/providers/categories_provider.dart';
 import 'package:expense_tracker/features/transactions/data/models/UpdateTransactionRequest.dart';
@@ -39,7 +37,7 @@ class _AddEditTransactionPageState
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _amountController;
-  late final TextEditingController _paidToController;
+  late final TextEditingController _partyController;
   late final TextEditingController _notesController;
 
   bool _isLoading = false;
@@ -68,8 +66,8 @@ class _AddEditTransactionPageState
       text: transaction?.amount.toString() ?? '',
     );
 
-    _paidToController = TextEditingController(
-      text: transaction?.paidTo ?? '',
+    _partyController = TextEditingController(
+      text: transaction?.party ?? '',
     );
 
     _notesController = TextEditingController(
@@ -90,7 +88,7 @@ class _AddEditTransactionPageState
   @override
   void dispose() {
     _amountController.dispose();
-    _paidToController.dispose();
+    _partyController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -103,17 +101,15 @@ class _AddEditTransactionPageState
     final categoriesState =
     ref.watch(categoriesProvider);
 
-    final accounts =
-        accountsState.accounts;
+    final accounts = accountsState.accounts
+        .where((a) => a.isActive)
+        .toList();
 
-    final categories =
-    categoriesState.categories
-        .where(
-          (c) =>
-      _transactionType != 3 &&
-          c.categoryType ==
-              _transactionType,
-    )
+    final categories = categoriesState.categories
+        .where((c) =>
+            c.isActive &&
+            _transactionType != 3 &&
+            c.categoryType == _transactionType)
         .toList();
 
     final isEditing =
@@ -296,14 +292,14 @@ class _AddEditTransactionPageState
 
               SizedBox(height: 16.h),
 
-              /// Paid To
+              /// Paid To / Received From
               if (_transactionType != 3)
                 Column(
                   children: [
                     CustomTextField(
                       controller:
-                      _paidToController,
-                      labelText: 'Paid To',
+                      _partyController,
+                      labelText: _transactionType == 1 ? 'Received From' : 'Paid To',
                     ),
                     SizedBox(height: 16.h),
                   ],
@@ -387,30 +383,20 @@ class _AddEditTransactionPageState
           transactionDate:
           _selectedDate,
 
-          paidTo:
+          party:
           _transactionType == 3
               ? ''
-              : _paidToController.text.trim(),
+              : _partyController.text.trim(),
 
           notes:
           _notesController.text.trim(),
         ),
       );
     } else {
-      final userId = await locator<AuthStorage>().getUserId();
-      if (userId == null) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Session expired. Please log in again.')),
-        );
-        return;
-      }
       success = await ref
           .read(transactionsProvider)
           .createTransaction(
         TransactionRequest(
-          userId: userId,
-
           accountId: _selectedAccountId!,
 
           transferAccountId:
@@ -433,10 +419,10 @@ class _AddEditTransactionPageState
           transactionDate:
           _selectedDate,
 
-          paidTo:
+          party:
           _transactionType == 3
               ? ''
-              : _paidToController.text.trim(),
+              : _partyController.text.trim(),
 
           notes:
           _notesController.text.trim(),

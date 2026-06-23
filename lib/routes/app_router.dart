@@ -1,6 +1,8 @@
+import 'package:expense_tracker/features/accounts/presentation/pages/account_details_page.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/get_started_page.dart';
 import 'package:expense_tracker/features/auth/presentation/pages/login_page.dart';
 import 'package:expense_tracker/features/categories/domain/entities/category_entity.dart';
+import 'package:expense_tracker/features/categories/presentation/pages/category_details_page.dart';
 import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/add_edit_transaction_page.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/transaction_details_page.dart';
@@ -26,13 +28,14 @@ class AppRouter {
 
   static const String addAccount = '/home/accounts/add';
   static const String editAccount = '/home/accounts/edit';
+  static const String accountDetails = '/home/accounts/details';
 
   static const String addCategory = '/home/categories/add';
   static const String editCategory = '/home/categories/edit';
+  static const String categoryDetails = '/home/categories/details';
 
   static const String addTransaction = '/home/transactions/add';
   static const String editTransaction = '/home/transactions/edit';
-
   static const transactionDetails = '/home/transactions/details';
 
   static final GoRouter router = GoRouter(
@@ -80,6 +83,13 @@ class AppRouter {
           return AddEditAccountPage(account: account);
         },
       ),
+      GoRoute(
+        path: accountDetails,
+        builder: (context, state) {
+          final account = state.extra as AccountEntity;
+          return AccountDetailsPage(account: account);
+        },
+      ),
 
       // Categories
       GoRoute(
@@ -91,6 +101,13 @@ class AppRouter {
         builder: (context, state) {
           final category = state.extra as CategoryEntity?;
           return AddEditCategoryPage(category: category);
+        },
+      ),
+      GoRoute(
+        path: categoryDetails,
+        builder: (context, state) {
+          final category = state.extra as CategoryEntity;
+          return CategoryDetailsPage(category: category);
         },
       ),
 

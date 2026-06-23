@@ -65,9 +65,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String mobileNumber, String password) async {
     state = const AuthLoading();
-    final result = await _repository.login(email, password);
+    final result = await _repository.login(mobileNumber, password);
     return result.fold(
       (auth) {
         state = AuthAuthenticated(fullName: auth.fullName, email: auth.email);

@@ -6,37 +6,28 @@ import '../../domain/repositories/category_repository.dart';
 
 import '../datasources/category_remote_data_source.dart';
 
-class CategoryRepositoryImpl
-    implements CategoryRepository {
+class CategoryRepositoryImpl implements CategoryRepository {
   final CategoryRemoteDataSource remote;
 
   CategoryRepositoryImpl(this.remote);
 
   @override
-  Future<List<CategoryEntity>> getCategories(
-      String userId,
-      ) {
-    return remote.getCategories(userId);
+  Future<List<CategoryEntity>> getCategories() {
+    return remote.getCategories();
   }
 
   @override
-  Future<CategoryEntity> createCategory(
-      CategoryRequest request,
-      ) {
+  Future<CategoryEntity> createCategory(CategoryRequest request) {
     return remote.createCategory(request);
   }
 
   @override
-  Future<CategoryEntity> updateCategory(
-      UpdateCategoryRequest request,
-      ) async {
+  Future<CategoryEntity> updateCategory(UpdateCategoryRequest request) async {
     return await remote.updateCategory(request);
   }
 
   @override
-  Future<void> deleteCategory(
-      String id,
-      ) {
+  Future<void> deleteCategory(String id) {
     return remote.deleteCategory(id);
   }
 }

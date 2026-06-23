@@ -4,19 +4,11 @@ import 'package:expense_tracker/features/categories/data/models/update_category_
 import '../entities/category_entity.dart';
 
 abstract class CategoryRepository {
-  Future<List<CategoryEntity>> getCategories(
-      String userId,
-      );
+  Future<List<CategoryEntity>> getCategories();
 
-  Future<CategoryEntity> createCategory(
-      CategoryRequest request,
-      );
+  Future<CategoryEntity> createCategory(CategoryRequest request);
 
-  Future<CategoryEntity> updateCategory(
-      UpdateCategoryRequest request,
-      );
+  Future<CategoryEntity> updateCategory(UpdateCategoryRequest request);
 
-  Future<void> deleteCategory(
-      String id,
-      );
+  Future<void> deleteCategory(String id);
 }

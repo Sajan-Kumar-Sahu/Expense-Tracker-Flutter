@@ -17,7 +17,7 @@ class TransactionEntity extends Equatable {
   final double amount;
   final DateTime transactionDate;
 
-  final String paidTo;
+  final String party;
   final String notes;
 
   final DateTime createdAt;
@@ -31,7 +31,7 @@ class TransactionEntity extends Equatable {
     required this.transactionType,
     required this.amount,
     required this.transactionDate,
-    required this.paidTo,
+    required this.party,
     required this.notes,
     required this.createdAt,
   });
@@ -52,7 +52,7 @@ class TransactionEntity extends Equatable {
     transactionType,
     amount,
     transactionDate,
-    paidTo,
+    party,
     notes,
     createdAt,
   ];

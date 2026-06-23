@@ -1,6 +1,4 @@
-import 'package:expense_tracker/core/storage/auth_storage.dart';
 import 'package:expense_tracker/core/utils/app_refresh.dart';
-import 'package:expense_tracker/dependency_injection/injection.dart';
 import 'package:expense_tracker/features/accounts/data/models/account_request.dart';
 import 'package:expense_tracker/features/accounts/data/models/update_account_request.dart';
 import 'package:flutter/material.dart';
@@ -13,10 +11,8 @@ import '../../../../routes/app_router.dart';
 import '../../domain/entities/account_entity.dart';
 import '../providers/accounts_provider.dart';
 
-/// Screen supporting creation of a new Account or updating an existing one.
 class AddEditAccountPage extends ConsumerStatefulWidget {
   final AccountEntity? account;
-
   const AddEditAccountPage({super.key, this.account});
 
   @override
@@ -28,6 +24,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
   late int _selectedType;
+  late bool _isActive;
   bool _isLoading = false;
 
   final Map<int, String> _accountTypes = {
@@ -41,8 +38,10 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.account?.name ?? '');
-    _balanceController = TextEditingController(text: widget.account?.openingBalance.toString() ?? '0.00');
+    _balanceController = TextEditingController(
+        text: widget.account?.openingBalance.toString() ?? '0.00');
     _selectedType = widget.account?.accountType ?? 1;
+    _isActive = widget.account?.isActive ?? true;
   }
 
   @override
@@ -55,6 +54,7 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.account != null;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -86,37 +86,52 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
               DropdownButtonFormField<int>(
                 initialValue: _selectedType,
                 decoration: const InputDecoration(labelText: 'Account Type'),
-                items: _accountTypes.entries.map(
-                      (entry) => DropdownMenuItem(
-                    value: entry.key,
-                    child: Text(entry.value),
-                  ),
-                ).toList(),
+                items: _accountTypes.entries
+                    .map((entry) => DropdownMenuItem(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        ))
+                    .toList(),
                 onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedType = value);
-                  }
+                  if (value != null) setState(() => _selectedType = value);
                 },
               ),
               SizedBox(height: 16.h),
               CustomTextField(
                 controller: _balanceController,
                 labelText: 'Initial Balance',
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter balance';
                   }
-
                   if (double.tryParse(value) == null) {
                     return 'Please enter a valid amount';
                   }
-
                   return null;
                 },
               ),
+              if (isEditing) ...[
+                SizedBox(height: 16.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Active',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Switch.adaptive(
+                      value: _isActive,
+                      onChanged: (value) => setState(() => _isActive = value),
+                    ),
+                  ],
+                ),
+              ],
               SizedBox(height: 40.h),
               CustomButton(
                 text: isEditing ? 'Save Changes' : 'Create Account',
@@ -132,78 +147,53 @@ class _AddEditAccountPageState extends ConsumerState<AddEditAccountPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
-
     final name = _nameController.text.trim();
     final balance = double.parse(_balanceController.text.trim());
     final isEditing = widget.account != null;
-
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
 
     if (isEditing) {
-      final success =
-      await ref.read(accountsProvider).updateAccount(
-        UpdateAccountRequest(
-          id: widget.account!.id,
-          userId: widget.account!.userId,
-          name: name,
-          description: widget.account!.description,
-          isActive: widget.account!.isActive,
-          accountType: _selectedType,
-        ),
-      );
-
+      final success = await ref.read(accountsProvider).updateAccount(
+            UpdateAccountRequest(
+              id: widget.account!.id,
+              name: name,
+              description: widget.account!.description,
+              isActive: _isActive,
+              accountType: _selectedType,
+            ),
+          );
       setState(() => _isLoading = false);
-
       if (success) {
         await refreshAll(ref);
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('Account updated')),
-        );
+        scaffoldMessenger
+            .showSnackBar(const SnackBar(content: Text('Account updated')));
         router.go(AppRouter.home);
       } else {
         scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('Failed to update account')),
-        );
+            const SnackBar(content: Text('Failed to update account')));
       }
-
       return;
     }
 
-    final userId = await locator<AuthStorage>().getUserId();
-    if (userId == null) {
-      setState(() => _isLoading = false);
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Session expired. Please log in again.')),
-      );
-      return;
-    }
-
-    final success =
-    await ref.read(accountsProvider).createAccount(
-      AccountRequest(
-        userId: userId,
-        name: name,
-        description: '',
-        openingBalance: balance,
-        accountType: _selectedType,
-      ),
-    );
-
+    final success = await ref.read(accountsProvider).createAccount(
+          AccountRequest(
+            name: name,
+            description: '',
+            openingBalance: balance,
+            accountType: _selectedType,
+          ),
+        );
     setState(() => _isLoading = false);
-
     if (success) {
       await refreshAll(ref);
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Account created')),
-      );
+      scaffoldMessenger
+          .showSnackBar(const SnackBar(content: Text('Account created')));
       router.go(AppRouter.home);
     } else {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Failed to create account')),
-      );
+          const SnackBar(content: Text('Failed to create account')));
     }
   }
 }

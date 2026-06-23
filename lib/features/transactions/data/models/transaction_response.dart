@@ -5,11 +5,11 @@ class TransactionResponse {
   final String userId;
   final String accountId;
   final String? transferAccountId;
-  final String categoryId;
+  final String? categoryId;
   final int transactionType;
   final double amount;
   final DateTime transactionDate;
-  final String? paidTo;
+  final String? party;
   final String? notes;
   final DateTime createdAt;
 
@@ -18,11 +18,11 @@ class TransactionResponse {
     required this.userId,
     required this.accountId,
     this.transferAccountId,
-    required this.categoryId,
+    this.categoryId,
     required this.transactionType,
     required this.amount,
     required this.transactionDate,
-    this.paidTo,
+    this.party,
     this.notes,
     required this.createdAt,
   });
@@ -33,13 +33,13 @@ class TransactionResponse {
       userId: json['userId'] as String,
       accountId: json['accountId'] as String,
       transferAccountId: json['transferAccountId'] as String?,
-      categoryId: json['categoryId']as String,
+      categoryId: json['categoryId'] as String?,
       transactionType: json['transactionType'] as int,
       amount: (json['amount'] as num).toDouble(),
-      transactionDate: DateTime.parse(json['transactionDate']as String),
-      paidTo: json['paidTo'] as String,
+      transactionDate: DateTime.parse(json['transactionDate'] as String),
+      party: json['party'] as String?,
       notes: json['notes'] as String?,
-      createdAt: DateTime.parse(json['createdAt']as String),
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
@@ -49,26 +49,13 @@ class TransactionResponse {
       userId: userId,
       accountId: accountId,
       transferAccountId: transferAccountId,
-      categoryId: categoryId,
+      categoryId: categoryId ?? '',
       transactionType: transactionType,
       amount: amount,
       transactionDate: transactionDate,
-      paidTo: paidTo ?? '',
+      party: party ?? '',
       notes: notes ?? '',
       createdAt: createdAt,
     );
-  }
-
-  String _mapType(int type) {
-    switch (type) {
-      case 1:
-        return 'income';
-      case 2:
-        return 'expense';
-      case 3:
-        return 'transfer';
-      default:
-        return 'expense';
-    }
   }
 }
