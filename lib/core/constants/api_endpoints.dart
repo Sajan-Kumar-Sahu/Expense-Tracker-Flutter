@@ -4,6 +4,10 @@ class ApiEndpoints {
   static const String transactions = '/api/transactions';
   static const String dashboard = '/api/dashboard';
   static const String users = '/api/users';
+  static const String contacts = '/api/contacts';
+  static const String settlements = '/api/settlements';
+  static const String workLogs = '/api/worklogs';
+  static const String projects = '/api/projects';
 
   static const String authLogin = '/api/auth/login';
   static const String authRefreshToken = '/api/auth/refresh-token';

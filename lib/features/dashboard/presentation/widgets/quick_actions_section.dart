@@ -1,14 +1,16 @@
+import 'package:expense_tracker/core/navigation/providers/nav_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../routes/app_router.dart';
 
-class QuickActionsSection extends StatelessWidget {
+class QuickActionsSection extends ConsumerWidget {
   const QuickActionsSection({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Column(
@@ -55,15 +57,14 @@ class QuickActionsSection extends StatelessWidget {
             ),
             SizedBox(width: 12.w),
             _QuickActionCard(
-              icon: Icons.bar_chart_rounded,
-              label: 'View\nReports',
+              icon: Icons.handshake_outlined,
+              label: 'Settle\nDebts',
               color: const Color(0xFFF59E0B),
               bgColor: const Color(0xFFFFFBEB),
               darkBgColor: const Color(0xFF2D2008),
               delay: 240,
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Reports coming soon')),
-              ),
+              onTap: () =>
+                  ref.read(navProvider.notifier).state = 5,
             ),
           ],
         ),

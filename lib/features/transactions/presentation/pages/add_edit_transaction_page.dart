@@ -78,7 +78,7 @@ class _AddEditTransactionPageState
       _transactionType = transaction.transactionType;
       _selectedAccountId = transaction.accountId;
       _selectedTransferAccountId = transaction.transferAccountId;
-      _selectedCategoryId = transaction.categoryId;
+      _selectedCategoryId = transaction.categoryId.isEmpty ? null : transaction.categoryId;
       _selectedDate = transaction.transactionDate;
     } else if (widget.initialTransactionType != null) {
       _transactionType = widget.initialTransactionType!;

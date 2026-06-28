@@ -3,9 +3,20 @@ import 'package:expense_tracker/features/auth/presentation/pages/get_started_pag
 import 'package:expense_tracker/features/auth/presentation/pages/login_page.dart';
 import 'package:expense_tracker/features/categories/domain/entities/category_entity.dart';
 import 'package:expense_tracker/features/categories/presentation/pages/category_details_page.dart';
+import 'package:expense_tracker/features/contacts/domain/entities/contact_entity.dart';
+import 'package:expense_tracker/features/contacts/presentation/pages/add_edit_contact_page.dart';
+import 'package:expense_tracker/features/contacts/presentation/pages/contact_list_page.dart';
+import 'package:expense_tracker/features/settlements/domain/entities/settlement_entity.dart';
+import 'package:expense_tracker/features/settlements/presentation/pages/add_settlement_page.dart';
+import 'package:expense_tracker/features/settlements/presentation/pages/settlement_details_page.dart';
 import 'package:expense_tracker/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/add_edit_transaction_page.dart';
 import 'package:expense_tracker/features/transactions/presentation/pages/transaction_details_page.dart';
+import 'package:expense_tracker/features/worklog/domain/entities/work_log_entity.dart';
+import 'package:expense_tracker/features/worklog/presentation/pages/add_edit_work_log_page.dart';
+import 'package:expense_tracker/features/worklog/presentation/pages/project_list_page.dart';
+import 'package:expense_tracker/features/worklog/presentation/pages/work_log_dashboard_page.dart';
+import 'package:expense_tracker/features/worklog/presentation/pages/work_log_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -37,6 +48,20 @@ class AppRouter {
   static const String addTransaction = '/home/transactions/add';
   static const String editTransaction = '/home/transactions/edit';
   static const transactionDetails = '/home/transactions/details';
+
+  static const String contacts = '/home/contacts';
+  static const String addContact = '/home/contacts/add';
+  static const String editContact = '/home/contacts/edit';
+
+  static const String addSettlement = '/home/settlements/add';
+  static const String editSettlement = '/home/settlements/edit';
+  static const String settlementDetails = '/home/settlements/details';
+
+  static const String workLogProjects = '/home/worklog/projects';
+  static const String workLogDashboard = '/home/worklog/dashboard';
+  static const String addWorkLog = '/home/worklog/add';
+  static const String editWorkLog = '/home/worklog/edit';
+  static const String workLogDetails = '/home/worklog/details';
 
   static final GoRouter router = GoRouter(
     initialLocation: splash,
@@ -130,6 +155,71 @@ class AppRouter {
         builder: (context, state) {
           final id = state.extra as String;
           return TransactionDetailsPage(transactionId: id);
+        },
+      ),
+
+      // Contacts
+      GoRoute(
+        path: contacts,
+        builder: (context, state) => const ContactListPage(),
+      ),
+      GoRoute(
+        path: addContact,
+        builder: (context, state) => const AddEditContactPage(),
+      ),
+      GoRoute(
+        path: editContact,
+        builder: (context, state) {
+          final contact = state.extra as ContactEntity?;
+          return AddEditContactPage(contact: contact);
+        },
+      ),
+
+      // Settlements
+      GoRoute(
+        path: addSettlement,
+        builder: (context, state) => const AddSettlementPage(),
+      ),
+      GoRoute(
+        path: editSettlement,
+        builder: (context, state) {
+          final settlement = state.extra as SettlementEntity?;
+          return AddSettlementPage(settlement: settlement);
+        },
+      ),
+      GoRoute(
+        path: settlementDetails,
+        builder: (context, state) {
+          final id = state.extra as String;
+          return SettlementDetailsPage(settlementId: id);
+        },
+      ),
+
+      // WorkLog
+      GoRoute(
+        path: workLogProjects,
+        builder: (context, state) => const ProjectListPage(),
+      ),
+      GoRoute(
+        path: workLogDashboard,
+        builder: (context, state) => const WorkLogDashboardPage(),
+      ),
+      GoRoute(
+        path: addWorkLog,
+        builder: (context, state) => const AddEditWorkLogPage(),
+      ),
+      GoRoute(
+        path: editWorkLog,
+        builder: (context, state) {
+          final workLog = state.extra as WorkLogEntity?;
+          return AddEditWorkLogPage(workLog: workLog);
+        },
+      ),
+      GoRoute(
+        path: workLogDetails,
+        builder: (context, state) {
+          final id = state.extra as String;
+          return WorkLogDetailsPage(workLogId: id);
         },
       ),
     ],

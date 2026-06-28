@@ -24,6 +24,21 @@ import '../features/dashboard/data/datasources/dashboard_remote_data_source.dart
 import '../features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
 
+// Feature Contacts
+import '../features/contacts/data/datasources/contact_remote_datasource.dart';
+import '../features/contacts/data/repositories/contact_repository_impl.dart';
+import '../features/contacts/domain/repositories/contact_repository.dart';
+
+// Feature Settlements
+import '../features/settlements/data/datasources/settlement_remote_datasource.dart';
+import '../features/settlements/data/repositories/settlement_repository_impl.dart';
+import '../features/settlements/domain/repositories/settlement_repository.dart';
+
+// Feature WorkLog
+import '../features/worklog/data/datasources/work_log_remote_data_source.dart';
+import '../features/worklog/data/repositories/work_log_repository_impl.dart';
+import '../features/worklog/domain/repositories/work_log_repository.dart';
+
 /// Central Service Locator configuration.
 final locator = GetIt.instance;
 
@@ -73,5 +88,29 @@ void setupLocator() {
   );
   locator.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(locator<DashboardRemoteDataSource>()),
+  );
+
+  // Feature Contacts
+  locator.registerLazySingleton<ContactRemoteDataSource>(
+    () => ContactRemoteDataSourceImpl(locator<ApiClient>()),
+  );
+  locator.registerLazySingleton<ContactRepository>(
+    () => ContactRepositoryImpl(locator<ContactRemoteDataSource>()),
+  );
+
+  // Feature Settlements
+  locator.registerLazySingleton<SettlementRemoteDataSource>(
+    () => SettlementRemoteDataSourceImpl(locator<ApiClient>()),
+  );
+  locator.registerLazySingleton<SettlementRepository>(
+    () => SettlementRepositoryImpl(locator<SettlementRemoteDataSource>()),
+  );
+
+  // Feature WorkLog
+  locator.registerLazySingleton<WorkLogRemoteDataSource>(
+    () => WorkLogRemoteDataSourceImpl(locator<ApiClient>()),
+  );
+  locator.registerLazySingleton<WorkLogRepository>(
+    () => WorkLogRepositoryImpl(locator<WorkLogRemoteDataSource>()),
   );
 }

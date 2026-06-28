@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:expense_tracker/routes/app_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,8 @@ import '../../features/transactions/presentation/pages/transaction_list_page.dar
 import '../../features/accounts/presentation/pages/account_list_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/categories/presentation/pages/category_list_page.dart';
+import '../../features/settlements/presentation/pages/settlement_list_page.dart';
+import '../../features/worklog/presentation/pages/work_log_list_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Nav destination model
@@ -67,6 +70,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
   late final AnimationController _fabController;
   late final Animation<double> _fabScale;
   StreamSubscription<void>? _sessionSub;
+  DateTime? _lastBackPressed;
 
   static const List<Widget> _pages = [
     DashboardPage(),
@@ -74,6 +78,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     AccountListPage(),
     SettingsPage(),
     CategoryListPage(),
+    SettlementListPage(),
+    WorkLogListPage(),
   ];
 
   @override
@@ -108,10 +114,35 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     final currentIndex = ref.watch(navProvider);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      key: mainScaffoldKey,
-      drawer: const AppDrawer(),
-      body: Stack(
+    return BackButtonListener(
+      onBackButtonPressed: () async {
+        // When go_router still has routes to pop (e.g. a detail page is open),
+        // let go_router handle it normally.
+        if (context.canPop()) return false;
+
+        if (currentIndex != 0) {
+          ref.read(navProvider.notifier).state = 0;
+          return true;
+        }
+        final now = DateTime.now();
+        if (_lastBackPressed == null ||
+            now.difference(_lastBackPressed!) > const Duration(seconds: 2)) {
+          _lastBackPressed = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Press back again to exit'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return true;
+        }
+        unawaited(SystemNavigator.pop());
+        return true;
+      },
+      child: Scaffold(
+        key: mainScaffoldKey,
+        drawer: const AppDrawer(),
+        body: Stack(
         children: [
           // ── Page content ────────────────────────────────────────────────
           IndexedStack(index: currentIndex, children: _pages),
@@ -130,6 +161,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
             ),
           ),
         ],
+      ),
       ),
     );
   }

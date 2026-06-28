@@ -98,6 +98,20 @@ class AppDrawer extends ConsumerWidget {
                     context: context,
                   ),
                   _DrawerItem(
+                    icon: Icons.handshake_outlined,
+                    label: 'Settlements',
+                    index: 5,
+                    ref: ref,
+                    context: context,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.work_history_rounded,
+                    label: 'Work Log',
+                    index: 6,
+                    ref: ref,
+                    context: context,
+                  ),
+                  _DrawerItem(
                     icon: Icons.savings_rounded,
                     label: 'Budgets',
                     index: -1,

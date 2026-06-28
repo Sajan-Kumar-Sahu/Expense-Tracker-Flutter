@@ -20,8 +20,8 @@ void main() async {
   // Initialize Environment Config (Defaults to Development)
   AppConfig.initialize(
     environment: Environment.dev,
-    baseUrl: 'https://expensetracker-production-c085.up.railway.app',
-      //baseUrl: 'http://192.168.1.9:21882'
+    // baseUrl: 'https://expensetracker-production-c085.up.railway.app',
+      baseUrl: 'http://192.168.1.9:21882'
   );
 
   // Set up service locator
