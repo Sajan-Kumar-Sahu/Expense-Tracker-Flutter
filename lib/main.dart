@@ -9,6 +9,8 @@ import 'core/theme/providers/theme_provider.dart';
 import 'dependency_injection/injection.dart';
 import 'core/utils/app_refresh.dart';
 import 'routes/app_router.dart';
+import 'features/biometric/services/app_lifecycle_service.dart';
+import 'features/biometric/presentation/pages/authentication_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,14 +45,18 @@ class ExpenseTrackerApp extends ConsumerStatefulWidget {
 
 class _ExpenseTrackerAppState extends ConsumerState<ExpenseTrackerApp>
     with WidgetsBindingObserver {
+  late final AppLifecycleService _lifecycleService;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _lifecycleService = AppLifecycleService(ref)..init();
   }
 
   @override
   void dispose() {
+    _lifecycleService.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -78,6 +84,9 @@ class _ExpenseTrackerAppState extends ConsumerState<ExpenseTrackerApp>
           darkTheme: AppTheme.darkTheme,
           themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
           routerConfig: AppRouter.router,
+          builder: (context, child) {
+            return AuthenticationGate(child: child!);
+          },
         );
       },
     );

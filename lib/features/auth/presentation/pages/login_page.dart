@@ -1,3 +1,5 @@
+import 'package:expense_tracker/core/widgets/animated_pin_input.dart';
+import 'package:expense_tracker/features/biometric/presentation/providers/biometric_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -18,42 +20,39 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _mobileController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _pinController = TextEditingController();
   final _mobileFocus = FocusNode();
-  final _passwordFocus = FocusNode();
 
-  bool _obscurePassword = true;
   bool _showMobileError = false;
-  bool _showPasswordError = false;
-
+  String _pin = '';
+  bool _showPinError = false;
   @override
   void dispose() {
     _mobileController.dispose();
-    _passwordController.dispose();
+    _pinController.dispose();
     _mobileFocus.dispose();
-    _passwordFocus.dispose();
     super.dispose();
   }
 
   bool get _isMobileValid =>
       RegExp(r'^\d{10}$').hasMatch(_mobileController.text.trim());
 
-  bool get _isPasswordValid => _passwordController.text.length >= 4;
+  bool get _isPinValid => _pin.length == 4;
 
   Future<void> _login() async {
     setState(() {
       _showMobileError = !_isMobileValid;
-      _showPasswordError = !_isPasswordValid;
+      _showPinError = !_isPinValid;
     });
 
-    if (!_isMobileValid || !_isPasswordValid) return;
+    if (!_isMobileValid || !_isPinValid) return;
 
     _mobileFocus.unfocus();
-    _passwordFocus.unfocus();
+    FocusScope.of(context).unfocus();
 
     final success = await ref.read(authProvider.notifier).login(
           _mobileController.text.trim(),
-          _passwordController.text,
+          _pin,
         );
 
     if (!mounted) return;
@@ -61,6 +60,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (success) {
       await refreshAll(ref);
       if (!mounted) return;
+      ref.read(biometricProvider.notifier).unlock();
       context.go(AppRouter.home);
     } else {
       final authState = ref.read(authProvider);
@@ -85,86 +85,89 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final topPad = MediaQuery.of(context).padding.top;
+
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          // Gradient top section
+          // Gradient background — slightly taller than branding area
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: 0.38.sh,
+            height: 0.44.sh,
             child: const _GradientHeader(),
           ),
 
           SafeArea(
             child: Column(
               children: [
-                // Top branding area
+                // ── Branding — vertically centered in gradient area ───────
                 SizedBox(
-                  height: 0.28.sh,
+                  height: 0.40.sh - topPad,
                   child: Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 72.r,
-                          height: 72.r,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.25),
-                            ),
+                      Container(
+                        width: 52.r,
+                        height: 52.r,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(15.r),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
                           ),
-                          child: Icon(
-                            Icons.account_balance_wallet_rounded,
-                            size: 38.r,
-                            color: Colors.white,
+                        ),
+                        child: Icon(
+                          Icons.account_balance_wallet_rounded,
+                          size: 28.r,
+                          color: Colors.white,
+                        ),
+                      )
+                          .animate()
+                          .scale(
+                            begin: const Offset(0.5, 0.5),
+                            duration: 600.ms,
+                            curve: Curves.elasticOut,
                           ),
-                        )
-                            .animate()
-                            .scale(
-                              begin: const Offset(0.5, 0.5),
-                              duration: 600.ms,
-                              curve: Curves.elasticOut,
-                            ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'Welcome Back',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        )
-                            .animate()
-                            .fadeIn(delay: 200.ms, duration: 500.ms)
-                            .slideY(begin: 0.3, end: 0, delay: 200.ms),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Sign in to continue',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.65),
-                            fontSize: 13.sp,
-                          ),
-                        )
-                            .animate()
-                            .fadeIn(delay: 350.ms, duration: 500.ms),
-                      ],
-                    ),
+                      SizedBox(height: 10.h),
+                      Text(
+                        'Welcome Back',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      )
+                          .animate()
+                          .fadeIn(delay: 200.ms, duration: 500.ms)
+                          .slideY(begin: 0.3, end: 0, delay: 200.ms),
+                      SizedBox(height: 2.h),
+                      Text(
+                        'Sign in to continue',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 12.sp,
+                        ),
+                      )
+                          .animate()
+                          .fadeIn(delay: 350.ms, duration: 500.ms),
+                    ],
                   ),
                 ),
+                ),
 
-                // Card
+                // ── Card ─────────────────────────────────────────────────
                 Expanded(
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: theme.scaffoldBackgroundColor,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(32.r),
-                        topRight: Radius.circular(32.r),
+                        topLeft: Radius.circular(28.r),
+                        topRight: Radius.circular(28.r),
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -174,17 +177,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ],
                     ),
-                    child: SingleChildScrollView(
-                      padding:
-                          EdgeInsets.fromLTRB(24.w, 32.h, 24.w, 24.h),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(24.w, 22.h, 24.w, 24.h),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Mobile number field
-                          _FieldLabel(label: 'Mobile Number')
+                          // Mobile number
+                          const _FieldLabel(label: 'Mobile Number')
                               .animate()
                               .fadeIn(delay: 400.ms, duration: 400.ms),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: 6.h),
                           TextField(
                             controller: _mobileController,
                             focusNode: _mobileFocus,
@@ -197,8 +199,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             onChanged: (_) =>
                                 setState(() => _showMobileError = false),
                             onSubmitted: (_) =>
-                                FocusScope.of(context).requestFocus(_passwordFocus),
-                            style: TextStyle(fontSize: 15.sp),
+                                FocusScope.of(context).nextFocus(),
+                            style: TextStyle(fontSize: 14.sp),
                             decoration: _inputDecoration(
                               context: context,
                               isDark: isDark,
@@ -214,80 +216,86 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               .animate()
                               .fadeIn(delay: 450.ms, duration: 400.ms)
                               .slideY(
-                                  begin: 0.1,
-                                  end: 0,
-                                  delay: 450.ms,
-                                  duration: 400.ms),
+                                begin: 0.1,
+                                end: 0,
+                                delay: 450.ms,
+                                duration: 400.ms,
+                              ),
 
-                          SizedBox(height: 20.h),
+                          SizedBox(height: 16.h),
 
-                          // Password field
-                          _FieldLabel(label: 'Password')
+                          // PIN
+                          const _FieldLabel(label: 'PIN')
                               .animate()
                               .fadeIn(delay: 500.ms, duration: 400.ms),
                           SizedBox(height: 8.h),
-                          TextField(
-                            controller: _passwordController,
-                            focusNode: _passwordFocus,
-                            obscureText: _obscurePassword,
-                            textInputAction: TextInputAction.done,
-                            onChanged: (_) =>
-                                setState(() => _showPasswordError = false),
-                            onSubmitted: (_) => _login(),
-                            style: TextStyle(fontSize: 15.sp),
-                            decoration: _inputDecoration(
-                              context: context,
-                              isDark: isDark,
-                              hintText: 'Enter your password',
-                              prefixIcon: Icons.lock_outline_rounded,
-                              hasError: _showPasswordError,
-                              errorText: _showPasswordError
-                                  ? 'Password must be at least 4 characters'
-                                  : null,
-                              suffixIcon: GestureDetector(
-                                onTap: () => setState(
-                                    () => _obscurePassword = !_obscurePassword),
-                                child: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  size: 20.r,
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.45),
+                          AnimatedPinInput(
+                            onChanged: (value) {
+                              setState(() {
+                                _pin = value;
+                                _showPinError = false;
+                              });
+                            },
+                            onCompleted: (value) {
+                              _pin = value;
+                              _login();
+                            },
+                          )
+                              .animate()
+                              .fadeIn(delay: 550.ms)
+                              .slideY(begin: 0.1, end: 0),
+                          SizedBox(height: 8.h),
+                          Center(
+                            child: Text(
+                              'Enter your 4-digit PIN',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.55),
+                              ),
+                            ),
+                          ),
+                          if (_showPinError)
+                            Padding(
+                              padding: EdgeInsets.only(top: 6.h),
+                              child: Center(
+                                child: Text(
+                                  'Please enter a valid PIN',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.error,
+                                    fontSize: 12.sp,
+                                  ),
                                 ),
                               ),
                             ),
-                          )
-                              .animate()
-                              .fadeIn(delay: 550.ms, duration: 400.ms)
-                              .slideY(
-                                  begin: 0.1,
-                                  end: 0,
-                                  delay: 550.ms,
-                                  duration: 400.ms),
 
-                          SizedBox(height: 32.h),
+                          SizedBox(height: 24.h),
 
                           // Login button
                           SizedBox(
                             width: double.infinity,
-                            height: 54.h,
+                            height: 50.h,
                             child: ElevatedButton(
-                              onPressed: isLoading ? null : _login,
+                              onPressed: isLoading ||
+                                      !_isMobileValid ||
+                                      !_isPinValid
+                                  ? null
+                                  : _login,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.colorScheme.primary,
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor: theme.colorScheme.primary
+                                disabledBackgroundColor: theme
+                                    .colorScheme.primary
                                     .withValues(alpha: 0.35),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16.r),
+                                  borderRadius: BorderRadius.circular(14.r),
                                 ),
                               ),
                               child: isLoading
                                   ? SizedBox(
-                                      width: 22.r,
-                                      height: 22.r,
+                                      width: 20.r,
+                                      height: 20.r,
                                       child: const CircularProgressIndicator(
                                         strokeWidth: 2.5,
                                         color: Colors.white,
@@ -296,14 +304,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   : Text(
                                       'Login',
                                       style: TextStyle(
-                                        fontSize: 16.sp,
+                                        fontSize: 15.sp,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
                             ),
-                          )
-                              .animate()
-                              .fadeIn(delay: 650.ms, duration: 400.ms),
+                          ).animate().fadeIn(delay: 650.ms, duration: 400.ms),
                         ],
                       ),
                     ),

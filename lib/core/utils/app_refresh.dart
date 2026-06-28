@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/biometric/presentation/providers/biometric_provider.dart';
 
 import '../../features/accounts/presentation/providers/accounts_provider.dart';
 import '../../features/categories/presentation/providers/categories_provider.dart';
@@ -28,4 +29,5 @@ void clearAll(WidgetRef ref) {
   ref.invalidate(dashboardProvider);
   ref.invalidate(recentTransactionsProvider);
   ref.invalidate(userProvider);
+  ref.read(biometricProvider.notifier).resetSession();
 }

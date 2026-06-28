@@ -487,6 +487,7 @@ class _StatusActionsSection extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),

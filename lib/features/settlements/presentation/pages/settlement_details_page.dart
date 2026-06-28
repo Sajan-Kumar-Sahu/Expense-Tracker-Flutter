@@ -73,6 +73,9 @@ class _SettlementDetailsPageState
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
             child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.88,
+              ),
               padding: EdgeInsets.all(24.r),
               decoration: BoxDecoration(
                 color: isDark
@@ -83,7 +86,8 @@ class _SettlementDetailsPageState
               ),
               child: Form(
                 key: formKey,
-                child: Column(
+                child: SingleChildScrollView(
+                  child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -430,6 +434,7 @@ class _SettlementDetailsPageState
                     ),
                     SizedBox(height: 8.h),
                   ],
+                ),
                 ),
               ),
             ),

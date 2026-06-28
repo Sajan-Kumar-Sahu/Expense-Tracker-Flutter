@@ -2,6 +2,7 @@ import 'package:expense_tracker/core/utils/app_refresh.dart';
 import 'package:expense_tracker/features/auth/presentation/providers/auth_provider.dart';
 import 'package:expense_tracker/features/settings/presentation/pages/edit_profile_page.dart';
 import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
+import 'package:expense_tracker/features/biometric/presentation/pages/biometric_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +91,14 @@ class SettingsPage extends ConsumerWidget {
                       title: 'Security',
                       subtitle: 'PIN, biometric & password',
                       delay: 450,
-                      onTap: () => _showComingSoon(context, 'Security'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BiometricSettingsPage(),
+                          ),
+                        );
+                      },
                     ),
                     _SettingsTile(
                       icon: Icons.notifications_rounded,

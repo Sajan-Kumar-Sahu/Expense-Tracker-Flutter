@@ -6,6 +6,13 @@ import '../core/network/dio_provider.dart';
 import '../core/network/api_client.dart';
 import '../core/storage/auth_storage.dart';
 
+// Feature Biometric
+import 'package:expense_tracker/features/biometric/services/secure_storage_service.dart';
+import 'package:expense_tracker/features/biometric/services/biometric_service.dart';
+import 'package:expense_tracker/features/biometric/domain/repositories/biometric_repository.dart';
+import 'package:expense_tracker/features/biometric/data/repositories/biometric_repository_impl.dart';
+
+
 // Feature Accounts
 import '../features/accounts/data/datasources/account_remote_datasource.dart';
 import '../features/accounts/data/repositories/account_repository_impl.dart';
@@ -48,6 +55,14 @@ void setupLocator() {
   locator.registerLazySingleton<AuthStorage>(() => AuthStorage());
   locator.registerLazySingleton<Dio>(() => DioProvider.createDio(locator<AuthStorage>()));
   locator.registerLazySingleton<ApiClient>(() => ApiClient(locator<Dio>()));
+
+  // Feature Biometrics
+  locator.registerLazySingleton<SecureStorageService>(() => SecureStorageService());
+  locator.registerLazySingleton<BiometricService>(() => BiometricService());
+  locator.registerLazySingleton<BiometricRepository>(() => BiometricRepositoryImpl(
+        biometricService: locator<BiometricService>(),
+        secureStorageService: locator<SecureStorageService>(),
+      ));
 
   // Feature Accounts
   locator.registerLazySingleton<AccountRemoteDataSource>(
