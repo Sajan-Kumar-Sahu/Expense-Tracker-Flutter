@@ -139,7 +139,9 @@ class _TransactionDetailsPageState
                       SizedBox(width: 10.w),
                       Expanded(
                         child: _CategoryStatChip(
-                            categoryId: transaction.categoryId),
+                          categoryId: transaction.categoryId,
+                          transactionType: transaction.transactionType,
+                        ),
                       ),
                     ],
                   ),
@@ -185,12 +187,8 @@ class _TransactionDetailsPageState
                       ),
                       if (transaction.transferAccountId != null) ...[
                         _CardDivider(),
-                        _DetailRow(
-                          iconData: Icons.compare_arrows_rounded,
-                          iconBg: const Color(0xFFE6F1FB),
-                          iconColor: const Color(0xFF185FA5),
-                          label: 'Transfer to',
-                          value: transaction.transferAccountId!,
+                        _TransferToDetailRow(
+                          transferAccountId: transaction.transferAccountId!,
                         ),
                       ],
                     ],
@@ -454,10 +452,34 @@ class _AccountStatChip extends ConsumerWidget {
 
 class _CategoryStatChip extends ConsumerWidget {
   final String categoryId;
-  const _CategoryStatChip({required this.categoryId});
+  final int transactionType;
+  const _CategoryStatChip({
+    required this.categoryId,
+    required this.transactionType,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (categoryId.isEmpty) {
+      // Transfers have no category — show a contextual label instead
+      if (transactionType == 3) {
+        return _StatChip(
+          label: 'Category',
+          value: 'Transfer',
+          iconData: Icons.compare_arrows_rounded,
+          iconBg: const Color(0xFFE6F1FB),
+          iconColor: const Color(0xFF185FA5),
+        );
+      }
+      return _StatChip(
+        label: 'Category',
+        value: '—',
+        iconData: Icons.label_outline_rounded,
+        iconBg: const Color(0xFFE1F5EE),
+        iconColor: const Color(0xFF0F6E56),
+      );
+    }
+
     final asyncName = ref.watch(categoryNameProvider(categoryId));
     final name = asyncName.when(
       data: (n) => n,
@@ -470,6 +492,28 @@ class _CategoryStatChip extends ConsumerWidget {
       iconData: Icons.label_outline_rounded,
       iconBg: const Color(0xFFE1F5EE),
       iconColor: const Color(0xFF0F6E56),
+    );
+  }
+}
+
+class _TransferToDetailRow extends ConsumerWidget {
+  final String transferAccountId;
+  const _TransferToDetailRow({required this.transferAccountId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncName = ref.watch(accountNameProvider(transferAccountId));
+    final name = asyncName.when(
+      data: (n) => n,
+      loading: () => '…',
+      error: (_, __) => transferAccountId,
+    );
+    return _DetailRow(
+      iconData: Icons.compare_arrows_rounded,
+      iconBg: const Color(0xFFE6F1FB),
+      iconColor: const Color(0xFF185FA5),
+      label: 'Transfer to',
+      value: name,
     );
   }
 }

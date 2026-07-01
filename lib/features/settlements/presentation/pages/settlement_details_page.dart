@@ -383,8 +383,7 @@ class _SettlementDetailsPageState
                             'amount': double.parse(
                                 amountController.text.trim()),
                             'categoryId': selectedCategoryId,
-                            'transactionDate':
-                                selectedDate.toUtc().toIso8601String(),
+                            'transactionDate': DateTime.utc(selectedDate.year, selectedDate.month, selectedDate.day).toIso8601String(),
                             'notes': notesController.text.trim().isEmpty
                                 ? null
                                 : notesController.text.trim(),

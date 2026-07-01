@@ -25,7 +25,7 @@ class TransactionRequest {
       'categoryId': categoryId,
       'transactionType': transactionType,
       'amount': amount,
-      'transactionDate': transactionDate.toUtc().toIso8601String(),
+      'transactionDate': DateTime.utc(transactionDate.year, transactionDate.month, transactionDate.day).toIso8601String(),
       'party': party,
       'notes': notes,
     };

@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/api_endpoints.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/services/firebase_messaging_service.dart';
 import '../../../../core/storage/auth_storage.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -51,8 +53,10 @@ class AuthError extends AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
   final AuthStorage _storage;
+  final ApiClient _client;
 
-  AuthNotifier(this._repository, this._storage) : super(const AuthInitial());
+  AuthNotifier(this._repository, this._storage, this._client)
+      : super(const AuthInitial());
 
   Future<void> checkAuthStatus() async {
     final isAuth = await _storage.isAuthenticated();
@@ -71,6 +75,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return result.fold(
       (auth) {
         state = AuthAuthenticated(fullName: auth.fullName, email: auth.email);
+        _syncDeviceToken();
         return true;
       },
       (failure) {
@@ -78,6 +83,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return false;
       },
     );
+  }
+
+  Future<void> _syncDeviceToken() async {
+    try {
+      final token = await FirebaseMessagingService.getToken();
+      if (token == null) return;
+      await _client.put<dynamic>(
+        ApiEndpoints.userDeviceToken,
+        data: {'deviceToken': token},
+      );
+    } catch (_) {}
   }
 
   Future<void> logout() async {
@@ -89,5 +105,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repo = ref.read(_authRepositoryProvider);
   final storage = ref.read(authStorageProvider);
-  return AuthNotifier(repo, storage);
+  final client = ApiClient(DioProvider.createDio(storage));
+  return AuthNotifier(repo, storage, client);
 });

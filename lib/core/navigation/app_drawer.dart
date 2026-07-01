@@ -83,14 +83,6 @@ class AppDrawer extends ConsumerWidget {
                     context: context,
                   ),
                   _DrawerItem(
-                    icon: Icons.pie_chart_rounded,
-                    label: 'Reports',
-                    index: -1,
-                    ref: ref,
-                    context: context,
-                    comingSoon: true,
-                  ),
-                  _DrawerItem(
                     icon: Icons.category_rounded,
                     label: 'Categories',
                     index: 4,
@@ -112,8 +104,23 @@ class AppDrawer extends ConsumerWidget {
                     context: context,
                   ),
                   _DrawerItem(
+                    icon: Icons.alarm_rounded,
+                    label: 'Reminders',
+                    index: 7,
+                    ref: ref,
+                    context: context,
+                  ),
+                  _DrawerItem(
                     icon: Icons.savings_rounded,
                     label: 'Budgets',
+                    index: -1,
+                    ref: ref,
+                    context: context,
+                    comingSoon: true,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.pie_chart_rounded,
+                    label: 'Reports',
                     index: -1,
                     ref: ref,
                     context: context,

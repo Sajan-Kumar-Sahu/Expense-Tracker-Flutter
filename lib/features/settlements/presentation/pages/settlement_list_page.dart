@@ -51,6 +51,7 @@ class _SettlementListPageState extends ConsumerState<SettlementListPage>
     final receivables = provider.settlements
         .where((s) =>
             s.isReceivable &&
+            (s.isPending || s.isPartial) &&
             (query.isEmpty ||
                 s.contactName.toLowerCase().contains(query) ||
                 s.reason.toLowerCase().contains(query)))
@@ -59,6 +60,7 @@ class _SettlementListPageState extends ConsumerState<SettlementListPage>
     final payables = provider.settlements
         .where((s) =>
             s.isPayable &&
+            (s.isPending || s.isPartial) &&
             (query.isEmpty ||
                 s.contactName.toLowerCase().contains(query) ||
                 s.reason.toLowerCase().contains(query)))

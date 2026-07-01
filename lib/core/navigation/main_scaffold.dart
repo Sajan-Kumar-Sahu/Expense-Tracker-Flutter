@@ -17,6 +17,7 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/categories/presentation/pages/category_list_page.dart';
 import '../../features/settlements/presentation/pages/settlement_list_page.dart';
 import '../../features/worklog/presentation/pages/work_log_list_page.dart';
+import '../../features/reminders/presentation/pages/reminder_list_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Nav destination model
@@ -80,6 +81,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     CategoryListPage(),
     SettlementListPage(),
     WorkLogListPage(),
+    ReminderListPage(),
   ];
 
   @override

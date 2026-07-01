@@ -17,6 +17,11 @@ import 'package:expense_tracker/features/worklog/presentation/pages/add_edit_wor
 import 'package:expense_tracker/features/worklog/presentation/pages/project_list_page.dart';
 import 'package:expense_tracker/features/worklog/presentation/pages/work_log_dashboard_page.dart';
 import 'package:expense_tracker/features/worklog/presentation/pages/work_log_details_page.dart';
+import 'package:expense_tracker/features/reminders/domain/entities/reminder_entity.dart';
+import 'package:expense_tracker/features/reminders/presentation/pages/add_edit_reminder_page.dart';
+import 'package:expense_tracker/features/reminders/presentation/pages/reminder_dashboard_page.dart';
+import 'package:expense_tracker/features/reminders/presentation/pages/reminder_details_page.dart';
+import 'package:expense_tracker/features/reminders/presentation/pages/notification_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -62,6 +67,12 @@ class AppRouter {
   static const String addWorkLog = '/home/worklog/add';
   static const String editWorkLog = '/home/worklog/edit';
   static const String workLogDetails = '/home/worklog/details';
+
+  static const String reminderDashboard = '/home/reminders/dashboard';
+  static const String addReminder = '/home/reminders/add';
+  static const String editReminder = '/home/reminders/edit';
+  static const String reminderDetails = '/home/reminders/details';
+  static const String notificationList = '/home/reminders/notifications';
 
   static final GoRouter router = GoRouter(
     initialLocation: splash,
@@ -221,6 +232,34 @@ class AppRouter {
           final id = state.extra as String;
           return WorkLogDetailsPage(workLogId: id);
         },
+      ),
+
+      // Reminders
+      GoRoute(
+        path: reminderDashboard,
+        builder: (context, state) => const ReminderDashboardPage(),
+      ),
+      GoRoute(
+        path: addReminder,
+        builder: (context, state) => const AddEditReminderPage(),
+      ),
+      GoRoute(
+        path: editReminder,
+        builder: (context, state) {
+          final reminder = state.extra as ReminderEntity?;
+          return AddEditReminderPage(reminder: reminder);
+        },
+      ),
+      GoRoute(
+        path: reminderDetails,
+        builder: (context, state) {
+          final id = state.extra as String;
+          return ReminderDetailsPage(reminderId: id);
+        },
+      ),
+      GoRoute(
+        path: notificationList,
+        builder: (context, state) => const NotificationListPage(),
       ),
     ],
   );

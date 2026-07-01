@@ -1,7 +1,10 @@
+import 'package:expense_tracker/features/reminders/presentation/providers/notification_provider.dart';
 import 'package:expense_tracker/features/settings/presentation/providers/user_provider.dart';
+import 'package:expense_tracker/routes/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/navigation/providers/nav_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/welcome_section.dart';
@@ -19,6 +22,8 @@ class DashboardPage extends ConsumerWidget {
       ref.refresh(dashboardProvider.future),
       ref.refresh(recentTransactionsProvider.future),
     ]);
+
+    await ref.read(notificationProvider).loadNotifications();
   }
 
   @override
@@ -82,6 +87,7 @@ class _HomeAppBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final userAsync = ref.watch(userProvider);
+    final notificationProviderState = ref.watch(notificationProvider);
 
     return Row(
       children: [
@@ -107,10 +113,8 @@ class _HomeAppBar extends ConsumerWidget {
         // Notification icon
         _IconButton(
           icon: Icons.notifications_outlined,
-          badge: true,
-          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notifications coming soon')),
-          ),
+          badgeCount: notificationProviderState.unreadCount,
+          onTap: () => context.push(AppRouter.notificationList),
           theme: theme,
         ),
         SizedBox(width: 10.w),
@@ -168,13 +172,13 @@ class _HomeAppBar extends ConsumerWidget {
 
 class _IconButton extends StatelessWidget {
   final IconData icon;
-  final bool badge;
+  final int badgeCount;
   final VoidCallback onTap;
   final ThemeData theme;
 
   const _IconButton({
     required this.icon,
-    required this.badge,
+    required this.badgeCount,
     required this.onTap,
     required this.theme,
   });
@@ -194,16 +198,26 @@ class _IconButton extends StatelessWidget {
             ),
             child: Icon(icon, color: theme.colorScheme.primary, size: 22.r),
           ),
-          if (badge)
+          if (badgeCount > 0)
             Positioned(
               right: 8.r,
               top: 8.r,
               child: Container(
-                width: 8.r,
-                height: 8.r,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 4.w,
+                  vertical: 2.h,
+                ),
                 decoration: const BoxDecoration(
                   color: Color(0xFFEF4444),
                   shape: BoxShape.circle,
+                ),
+                child: Text(
+                  badgeCount > 9 ? '9+' : '$badgeCount',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 8.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

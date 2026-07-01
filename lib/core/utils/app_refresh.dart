@@ -6,6 +6,8 @@ import '../../features/categories/presentation/providers/categories_provider.dar
 import '../../features/dashboard/presentation/providers/dashboard_provider.dart';
 import '../../features/settings/presentation/providers/user_provider.dart';
 import '../../features/transactions/presentation/providers/transactions_provider.dart';
+import '../../features/reminders/presentation/providers/reminder_provider.dart';
+import '../../features/reminders/presentation/providers/notification_provider.dart';
 
 /// Call after any create / update / delete and on app resume.
 /// Refreshes every data provider so the UI is always consistent.
@@ -26,6 +28,8 @@ void clearAll(WidgetRef ref) {
   ref.read(accountsProvider).reset();
   ref.read(categoriesProvider).reset();
   ref.read(transactionsProvider).reset();
+  ref.read(reminderProvider).reset();
+  ref.read(notificationProvider).reset();
   ref.invalidate(dashboardProvider);
   ref.invalidate(recentTransactionsProvider);
   ref.invalidate(userProvider);

@@ -46,6 +46,13 @@ import '../features/worklog/data/datasources/work_log_remote_data_source.dart';
 import '../features/worklog/data/repositories/work_log_repository_impl.dart';
 import '../features/worklog/domain/repositories/work_log_repository.dart';
 
+// Feature Reminders
+import '../features/reminders/data/datasources/reminder_remote_datasource.dart';
+import '../features/reminders/data/repositories/reminder_repository_impl.dart';
+import '../features/reminders/data/repositories/notification_repository_impl.dart';
+import '../features/reminders/domain/repositories/reminder_repository.dart';
+import '../features/reminders/domain/repositories/notification_repository.dart';
+
 /// Central Service Locator configuration.
 final locator = GetIt.instance;
 
@@ -127,5 +134,16 @@ void setupLocator() {
   );
   locator.registerLazySingleton<WorkLogRepository>(
     () => WorkLogRepositoryImpl(locator<WorkLogRemoteDataSource>()),
+  );
+
+  // Feature Reminders
+  locator.registerLazySingleton<ReminderRemoteDataSource>(
+    () => ReminderRemoteDataSourceImpl(locator<ApiClient>()),
+  );
+  locator.registerLazySingleton<ReminderRepository>(
+    () => ReminderRepositoryImpl(locator<ReminderRemoteDataSource>()),
+  );
+  locator.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(locator<ReminderRemoteDataSource>()),
   );
 }
